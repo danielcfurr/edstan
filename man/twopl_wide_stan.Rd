@@ -18,7 +18,7 @@ A twopl_stanfit reference class object.
 Estimate the 2PL model using a response matrix.
 }
 \examples{
-myfit <- twopl_wide_stan(cito[, 2:19], chains = 4, iter = 200)
+myfit <- twopl_wide_stan(spelling[, 2:5], chains = 4, iter = 200)
 myfit$results()
 }
 

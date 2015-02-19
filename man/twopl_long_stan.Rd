@@ -22,10 +22,14 @@ A twopl_stanfit reference class object.
 Estimate the 2PL model using long-form data.
 }
 \examples{
+# Make the spelling data long-form
 require(reshape2)
-wide <- cito[, 2:19]
+wide <- spelling[, 2:5]
 wide$id <- 1:nrow(wide)
-long <- melt(wide, id.vars = "id", variable_name = "item")
-twopl_long_stan(long$id, long$item, long$value, chains = 4, iter = 200)
+long <- melt(wide, id.vars = "id")
+
+# Estimate the model
+myfit <- twopl_long_stan(long$id, long$variable, long$value, chains = 4, iter = 200)
+myfit$results()
 }
 
