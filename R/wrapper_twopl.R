@@ -64,7 +64,7 @@ twopl_long_stan <- function(id,
     jj = match_id$new,
     y  = response )
 
-  code_file <- system.file("extdata", "stancode_twopl.stan", package = "edstan")
+  code_file <- system.file("extdata", "twopl.stan", package = "edstan")
   
   stan_fit <- rstan::stan(file = code_file,
                    data = stan_data,
