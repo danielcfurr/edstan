@@ -13,10 +13,10 @@ twopl_long_stan(id, item, response, path = "", ...)
 
 \item{response}{A vector coded as 1 for a correct response and 0 otherwise.}
 
-\item{...}{Additional options passed to stan().}
+\item{...}{Additional options passed to \code{\link[rstan]{stan}}.}
 }
 \value{
-A twopl_stanfit reference class object.
+A \code{\link{twopl_stanfit}} object.
 }
 \description{
 Estimate the 2PL model using long-form data.
@@ -30,6 +30,9 @@ long <- melt(wide, id.vars = "id")
 
 # Estimate the model
 myfit <- twopl_long_stan(long$id, long$variable, long$value, chains = 4, iter = 200)
-myfit$results()
+myfit$print()
+}
+\seealso{
+See \code{\link{twopl_wide_stan}} for wide-form data. See \code{\link{twopl_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
 }
 

@@ -9,16 +9,19 @@ twopl_wide_stan(response_matrix, ...)
 \arguments{
 \item{response_matrix}{A response matrix. Columns represent items, and rows represent persons. Each element is one or zero or may be NA if missing.}
 
-\item{...}{Additional options passed to stan().}
+\item{...}{Additional options passed to \code{\link[rstan]{stan}}.}
 }
 \value{
-A twopl_stanfit reference class object.
+A \code{\link{twopl_stanfit}} object.
 }
 \description{
 Estimate the 2PL model using a response matrix.
 }
 \examples{
 myfit <- twopl_wide_stan(spelling[, 2:5], chains = 4, iter = 200)
-myfit$results()
+myfit$print()
+}
+\seealso{
+See \code{\link{twopl_long_stan}} for long-form data. See \code{\link{twopl_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
 }
 
