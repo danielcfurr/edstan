@@ -30,7 +30,7 @@ long <- melt(wide, id.vars = "id")
 
 # Estimate the model
 myfit <- twopl_long_stan(long$id, long$variable, long$value, chains = 4, iter = 200)
-myfit$print()
+myfit$show()
 }
 \seealso{
 See \code{\link{twopl_wide_stan}} for wide-form data. See \code{\link{twopl_stanfit}} and \code{\link{common_stanfit}} for applicable methods.

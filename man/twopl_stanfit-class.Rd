@@ -19,8 +19,6 @@ The two-parameteric logistic Reference Class.
 
 \describe{
 \item{\code{icc(item, ...)}}{Plot an item characteristic curve.}
-
-\item{\code{print(decimals = 2)}}{Display customized output.}
 }}
 \seealso{
 See \code{\link{common_stanfit}} for additional methods. See

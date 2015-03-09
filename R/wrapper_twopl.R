@@ -16,7 +16,7 @@ twopl_stanfit <- setRefClass("twopl_stanfit",
                              fields = c("person_names", "item_names"))
 
 twopl_stanfit$methods(
-  print = function(decimals = 2) {
+  show = function(decimals = 2) {
     "Display customized output."
     print_header_stan(fit)
     print_stan(fit,
@@ -70,7 +70,7 @@ twopl_stanfit$methods(
 #' 
 #' # Estimate the model
 #' myfit <- twopl_long_stan(long$id, long$variable, long$value, chains = 4, iter = 200)
-#' myfit$print()
+#' myfit$show()
 #' @export
 twopl_long_stan <- function(id,
                             item,
@@ -121,7 +121,7 @@ twopl_long_stan <- function(id,
 #' @seealso See \code{\link{twopl_long_stan}} for long-form data. See \code{\link{twopl_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
 #' @examples
 #' myfit <- twopl_wide_stan(spelling[, 2:5], chains = 4, iter = 200)
-#' myfit$print()
+#' myfit$show()
 #' @export
 twopl_wide_stan <- function(response_matrix,
                             ... ) {

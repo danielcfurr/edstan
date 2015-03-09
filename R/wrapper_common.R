@@ -258,7 +258,7 @@ have_na_stan <- function(x) {
 
 print_header_stan <- function(fit) {
   sim <- slot(fit, "sim")
-  cat("Inference for Stan model:")
+  cat("Inference for Stan model: \n")
   cat(sim$chains, " chains, each with iter=", sim$iter, 
       "; warmup=", sim$warmup, "; thin=", sim$thin, ";\n", sep = "")
   cat("post-warmup draws per chain=", sim$warmup, 

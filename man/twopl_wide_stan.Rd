@@ -19,7 +19,7 @@ Estimate the 2PL model using a response matrix.
 }
 \examples{
 myfit <- twopl_wide_stan(spelling[, 2:5], chains = 4, iter = 200)
-myfit$print()
+myfit$show()
 }
 \seealso{
 See \code{\link{twopl_long_stan}} for long-form data. See \code{\link{twopl_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
