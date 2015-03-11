@@ -217,10 +217,13 @@ plot_icc <- function(fit=NULL, item=NULL, new = TRUE,
 # Inward facing functions
 
 match_id_stan <- function(x) {
-  fixed_x <- unclass(as.factor(x))
-  n_discrepancies <- sum(x != fixed_x)
-  output <- data.frame(old = as.character(x),
-                       new = fixed_x,
+  old_id_vector <- as.character(x)
+  unique_strings <- unique(old_id_vector)
+  unique_new_ids <- 1:length(unique_strings)
+  names(unique_new_ids) <- unique_strings
+  new_id_vector <- unique_new_ids[old_id_vector]
+  output <- data.frame(old = old_id_vector,
+                       new = new_id_vector,
                        stringsAsFactors = FALSE )
   return(output)
 }
