@@ -7,8 +7,11 @@
 #' @field data The data list used in stan model fitting.
 #' @seealso 
 #' The \code{common_stanfit} methods are closely related to \code{rstan} and \code{edstan} functions. 
-#' See \code{rstan} functions \code{\link[rstan]{pairs.stanfit}}, \code{\link[rstan]{plot-method}}, and \code{\link[rstan]{traceplot}}.
-#' See \code{edstan} functions \code{\link{get_parameters}}, \code{\link{get_mean_logLik}}, \code{\link{get_best_logLik}}, and \code{\link{get_dic}}.
+#' See \code{rstan} functions \code{\link[rstan]{pairs.stanfit}}, 
+#' \code{\link[rstan]{plot-method}}, and \code{\link[rstan]{traceplot}}.
+#' See \code{edstan} functions \code{\link{get_parameters}}, 
+#' \code{\link{get_mean_logLik}}, \code{\link{get_best_logLik}}, 
+#' \code{\link{get_dic}}, and \code{\link{plot_autocor}}.
 #' @export
 common_stanfit <- setRefClass("common_stanfit", 
                               fields = c("fit", "data"))
@@ -28,9 +31,9 @@ common_stanfit$methods(
   })
 
 common_stanfit$methods(
-  traceplot = function(...) {
+  traceplot = function(pars, ...) {
     "Draw traceplots."
-    rstan::traceplot(fit, ...)
+    rstan::traceplot(fit, pars, ...)
   })
 
 # New Stan methods:
@@ -58,6 +61,13 @@ common_stanfit$methods(
     "View mean deviance, deviance evaluated at posterior parameter means, and DIC."
     get_dic(fit, data)
   })
+
+common_stanfit$methods(
+  autocor = function(pars, ...) {
+    "Plot auto-correlations for parameter draws."
+    plot_autocor(fit, pars, ...)
+  })
+
 
 
 ################################################################################
@@ -209,6 +219,81 @@ plot_icc <- function(fit=NULL, item=NULL, new = TRUE,
          y = gamma + (1-gamma) / (1 + exp(-alpha*(theta - beta))),
          ...)
   }
+  
+}
+
+
+#' Plot (or get a table of) auto-correlations for parameter draws.
+#' 
+#' @param fit         A \code{stanfit} object.
+#' @param pars        Parameters for which to calculate auto-correlations.
+#' @param back        Number of iterations back to calculate auto-correlations. Default is 10.
+#' @param show_matrix Whether the correlations should be returned as a matrix. Default is FALSE.
+#' @param show_plot   Whether to draw the plots. Default is TRUE.
+#' @return 
+#' If \code{show_plot = TRUE}, a matrix of plots of the auto-correlations for
+#' the chosen parameters. If \code{show_table = TRUE}, the auto-correlations in
+#' the form of a matrix. Both may be requested.
+#' @examples
+#' myfit <- twopl_wide_stan(spelling[, 2:5], chains = 4, iter = 200)
+#' stan_fit <- myfit$fit
+#' plot_autocor(stan_fit, pars = "alpha")
+#' autocorrs <- plot_autocor(stan_fit, pars = c("alpha", "beta"), show_matrix = TRUE)
+#' @export
+plot_autocor <- function(fit, pars, back = 10, show_matrix = FALSE, show_plot = !show_matrix) {
+  
+  ext <- rstan::extract(myfit$fit, 
+                        pars = pars, 
+                        permute = FALSE, 
+                        inc_warmup = FALSE)
+  pars <- dimnames(ext)$parameters
+  
+  correlations <- matrix(NA, nrow = back, ncol = length(pars))
+  colnames(correlations) <- pars
+  
+  for(j in 1:length(pars)) {
+    x <- ext[,,pars[j]]
+    for(i in 1:back) {
+      current <- delayed <- matrix(NA, 
+                                   ncol = ncol(x),
+                                   nrow = nrow(x) - i)
+      current <- x[1:(nrow(x) - i), ]
+      current.vector <- as.vector(current)
+      delayed <- x[(i + 1):nrow(x), ]
+      delayed.vector <- as.vector(delayed)
+      correlations[i, j] <- cor(current.vector, delayed.vector, use = "complete.obs")
+    }
+  }
+  
+  if(show_plot) {
+    
+    if(length(pars) > 1) {
+      layout.vec <- rep(0, times = 2 * ceiling(length(pars) / 2))
+      layout.vec[1:length(pars)] = 1:length(pars)
+      layout.mat <- matrix(layout.vec, 
+                           ncol = 2, 
+                           nrow = ceiling(length(pars) / 2), 
+                           byrow = TRUE)
+      nf <- layout(layout.mat)
+      layout.show(nf)
+    }
+    for(j in 1:length(pars)) {
+      plot(1:10, correlations[, j], 
+           main = paste("Autocorrelation for", pars[j]),
+           xlab = "Distance",
+           ylab = NA,
+           ylim = range(correlations),
+           type = "n")
+      segments(x0 = 1:back,
+               x1 = 1:back,
+               y0 = rep(0, times = back),
+               y1 = correlations[, j])
+      abline(h = 0, col = "gray")
+    }
+    
+  }
+  
+  if(show_matrix) return(correlations)
   
 }
 

@@ -18,6 +18,8 @@ The common Reference Class for edstan.
 \section{Methods}{
 
 \describe{
+\item{\code{autocor(pars, ...)}}{Plot auto-correlations for parameter draws.}
+
 \item{\code{best_logLik()}}{Get the posterior log-likelihood evaluated at posterior parameter means.}
 
 \item{\code{dic()}}{View mean deviance, deviance evaluated at posterior parameter means, and DIC.}
@@ -34,7 +36,10 @@ The common Reference Class for edstan.
 }}
 \seealso{
 The \code{common_stanfit} methods are closely related to \code{rstan} and \code{edstan} functions.
-See \code{rstan} functions \code{\link[rstan]{pairs.stanfit}}, \code{\link[rstan]{plot-method}}, and \code{\link[rstan]{traceplot}}.
-See \code{edstan} functions \code{\link{get_parameters}}, \code{\link{get_mean_logLik}}, \code{\link{get_best_logLik}}, and \code{\link{get_dic}}.
+See \code{rstan} functions \code{\link[rstan]{pairs.stanfit}},
+\code{\link[rstan]{plot-method}}, and \code{\link[rstan]{traceplot}}.
+See \code{edstan} functions \code{\link{get_parameters}},
+\code{\link{get_mean_logLik}}, \code{\link{get_best_logLik}},
+\code{\link{get_dic}}, and \code{\link{plot_autocor}}.
 }
 
