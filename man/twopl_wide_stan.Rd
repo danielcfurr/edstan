@@ -2,7 +2,7 @@
 % Please edit documentation in R/wrapper_twopl.R
 \name{twopl_wide_stan}
 \alias{twopl_wide_stan}
-\title{Estimate the 2PL model using a response matrix.}
+\title{Estimate the two-parameter logistic model using a response matrix.}
 \usage{
 twopl_wide_stan(response_matrix, ...)
 }
@@ -15,7 +15,7 @@ twopl_wide_stan(response_matrix, ...)
 A \code{\link{twopl_stanfit}} object.
 }
 \description{
-Estimate the 2PL model using a response matrix.
+Estimate the two-parameter logistic model using a response matrix.
 }
 \examples{
 myfit <- twopl_wide_stan(spelling[, 2:5], chains = 4, iter = 200)

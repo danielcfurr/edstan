@@ -1,13 +1,12 @@
 Package: edstan
 Type: Package
 Title: Stan wrappers for education applications
-Version: 0.102
-Date: 2015-03-10
+Version: 0.103
+Date: 2015-03-20
 Author: Who wrote it
 Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Imports: rstan
 LazyData: true
-Collate: wrapper_common.R
-         wrapper_twopl.R
+

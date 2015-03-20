@@ -1,5 +1,12 @@
 ################################################################################
-# common reference class
+# Exported functions (and the common Reference Class)
+#
+# The user will have direct access to these functions and classes. For this
+# reason, everything in this file requires help documentation.
+
+
+#-------------------------------------------------------------------------------
+# common Reference Class
 
 #' The common Reference Class for edstan.
 #'
@@ -70,8 +77,8 @@ common_stanfit$methods(
 
 
 
-################################################################################
-# Outward facing functions
+#-------------------------------------------------------------------------------
+# Exported functions
 
 #' Retrieve a data frame of parameter estimates from a \code{stanfit} object.
 #' 
@@ -294,139 +301,5 @@ plot_autocor <- function(fit, pars, back = 10, show_matrix = FALSE, show_plot = 
   }
   
   if(show_matrix) return(correlations)
-  
-}
-
-
-################################################################################
-# Inward facing functions
-
-match_id_stan <- function(x) {
-  old_id_vector <- as.character(x)
-  unique_strings <- unique(old_id_vector)
-  unique_new_ids <- 1:length(unique_strings)
-  names(unique_new_ids) <- unique_strings
-  new_id_vector <- unique_new_ids[old_id_vector]
-  output <- data.frame(old = old_id_vector,
-                       new = new_id_vector,
-                       stringsAsFactors = FALSE )
-  return(output)
-}
-
-
-# Provide a list of vectors. Returns TRUE if they differ in length.
-check_lengths_stan <- function(x) {
-  
-  lengths <- NULL
-  for(vec in x) {
-    lengths <- c(lengths, length(vec))
-  }
-  
-  different_lengths <- min(lengths) != max(lengths)
-  
-  return(different_lengths)
-  
-}
-
-
-# Provide a list of vectors. Returns TRUE if any contain NAs.
-have_na_stan <- function(x) {
-  
-  counts_na <- NULL
-  for(vec in x) {
-    counts_na <- c(counts_na, sum(is.na(vec)) )
-  }
-  
-  found_na <- any(counts_na > 0)
-  
-  return(found_na)
-  
-}
-
-
-print_header_stan <- function(fit) {
-  sim <- slot(fit, "sim")
-  cat("Inference for Stan model: \n")
-  cat(sim$chains, " chains, each with iter=", sim$iter, 
-      "; warmup=", sim$warmup, "; thin=", sim$thin, ";\n", sep = "")
-  cat("post-warmup draws per chain=", sim$warmup, 
-      "; total post-warmup draws=", sum(sim$warmup2), ".", sep = "")
-  cat("\n")
-}
-
-
-# Wrapper for printing Stan results.
-# Provide names for rownames in output as named lists.
-print_stan <- function(fit, 
-                       pars,
-                       names = NULL,
-                       title = "",
-                       decimals = 2,
-                       ... ) {
-  
-  summary_table <- get_parameters(fit, pars = pars)
-  se_mean <- grep("se_mean", colnames(summary_table))
-  n_eff <- grep("n_eff", colnames(summary_table))
-  Rhat <- grep("Rhat", colnames(summary_table))
-  
-  bad_rhat <- summary_table[, Rhat] < 1
-  summary_table[bad_rhat, Rhat] <- 1
-  
-  fmt <- paste("%1.", decimals, "f", sep = "")
-  fmt2 <- paste("%1.", decimals + 1, "f", sep = "")
-  
-  summary_table[, se_mean] <- sprintf(fmt2, summary_table[, se_mean])
-  summary_table[, n_eff] <- sprintf("%1.0f", summary_table[, n_eff])
-  summary_table[, Rhat] <- sprintf("%1.2f", summary_table[, Rhat])
-  
-  sub <- -1*c(se_mean, n_eff, Rhat)
-  for(n in names(summary_table)[sub]) {
-    summary_table[, n] <- sprintf(fmt, summary_table[, n])
-  }
-  
-  output <- NULL
-  for(i in pars) {
-    index <- grep(paste("^", i, sep=""), rownames(summary_table))
-    part_table <- summary_table[index, ]
-    name_vec <- names[[i]]
-    if(!is.null(name_vec)) rownames(part_table) <- name_vec
-    output <- rbind(output, part_table)
-  }
-  
-  if(title != "") cat("\n", title, "\n", "\n")
-  print(output)
-  
-}
-
-
-# Function to print table of results for vectorized parameters. Used by
-# print_stan.
-print_vector_stan <- function(fit, 
-                              pars, 
-                              title = "") {
-  
-  summary_table <- get_parameters(fit, pars = pars)
-  
-  output <- as.data.frame(matrix(NA, nrow=length(pars), ncol=5))
-  names(output) <- c("n", "min(n_eff)", "max(n_eff)", "min(Rhat)", "max(Rhat)")
-  rownames(output) <- pars
-  
-  for(i in 1:length(pars)) {
-    index <- grep(paste("^", pars[i], sep=""), rownames(summary_table))
-    part.table <- summary_table[index, ]
-    output[i, 1] <- nrow(part.table)
-    output[i, 2] <- min(part.table[, "n_eff"])
-    output[i, 3] <- max(part.table[, "n_eff"])
-    output[i, 4] <- min(part.table[, "Rhat"])
-    output[i, 5] <- max(part.table[, "Rhat"])
-  }
-  
-  bad_rhat <- output[, 4:5] < 1
-  output[, 4:5][bad_rhat] <- 1
-  output[, 1:3] <- sprintf("%1.0f", output[, 1:3])
-  output[, 4:5] <- sprintf("%1.2f", output[, 4:5])
-  
-  if(title != "") cat("\n", title, "\n", "\n")
-  print(output)
   
 }

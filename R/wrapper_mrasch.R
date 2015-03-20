@@ -1,0 +1,144 @@
+################################################################################
+# Multidimensional Rasch model reference class
+
+#' The multidimensional Rasch model Reference Class.
+#'
+#' @field person_names A character vector for person names.
+#' @field item_names A character vector for item names.
+#' @seealso 
+#' See \code{\link{common_stanfit}} for additional methods. See 
+#' \code{\link{mrasch_long_stan}} and \code{\link{mrasch_wide_stan}} for 
+#' estimating the Rasch model. See \code{\link{plot_icc}} for addtional options 
+#' for \code{icc}.
+#' @export
+mrasch_stanfit <- setRefClass("mrasch_stanfit",
+                             contains = "common_stanfit",
+                             fields = c("person_names", "item_names"))
+
+mrasch_stanfit$methods(
+  show = function(decimals = 2) {
+    "Display customized output."
+    print_header_stan(fit)
+    print_stan(fit, 
+               pars = "beta", 
+               title = "Difficulty parameters:",
+               names = list(beta = item_names),
+               decimals = decimals )
+    print_stan(fit, 
+               pars = c("sigma", "omega"), 
+               title = "Ability distribution parameters:",
+               decimals = decimals )
+    print_vector_stan(fit, 
+                      pars="theta", 
+                      title="Ability parameter vector:")
+  })
+
+mrasch_stanfit$methods(
+  icc = function(item, ...) {
+    "Plot an item characteristic curve."
+    inputs <- list(...)
+    inputs[["fit"]] <- fit
+    inputs[["alpha"]] = 1
+    inputs[["gamma"]] = 0
+    inputs <- finish_icc_method_inputs_stan(item, inputs, item_names)
+    do.call(plot_icc, inputs)
+  })
+
+
+################################################################################
+# Multidimensional Rasch model wrappers
+
+#' Estimate the multidimensional Rasch model using long-form data.
+#' 
+#' @param id A vector identifying persons.
+#' @param item A vector identifying persons.
+#' @param response A vector coded as 1 for a correct response and 0 otherwise.
+#' @param z A design matrix for the random effects.
+#' @param ... Additional options passed to \code{\link[rstan]{stan}}.
+#' @return A \code{\link{mrasch_stanfit}} object.
+#' @seealso See \code{\link{mrasch_wide_stan}} for wide-form data. See \code{\link{mrasch_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
+#' @export
+mrasch_long_stan <- function(id,
+                             item,
+                             response,
+                             z,
+                             ... ) {
+  
+  # Check input vectors for errors.
+  check_vectors_stan(permitted = c("numeric", "character"), id, item, response)
+  
+  # Additional checks on response vector. Must be numeric and 0, 1.
+  try(response <- as.numeric(response))
+  if(is.null(response)) stop("response must be numeric", call. = FALSE)
+  if(!all(response %in% 0:1)) stop("response must contain only 0 and 1", call. = FALSE)
+
+  match_id <- match_id_stan(id)
+  match_item <- match_id_stan(item)
+  
+  try(z <- as.matrix(z))
+  if(is.null(z)) stop("z must be a matrix or vector", call. = FALSE)
+  # If z is a vector of integers indicating dimension for each item, switch it
+  # to a design matrix. Check the values for z first.
+  if(ncol(z) == 1) {
+    dims <- 1:max(z)
+    if(any(dims %in% z == FALSE)) stop("Invalid dimensions indicated in vector z", call. = FALSE)
+    if(any(z %in% dims == FALSE)) stop("Invalid dimensions indicated in vector z", call. = FALSE)
+    new_z <- matrix(0, ncol = max(dims), nrow = nrow(z))
+    for(r in 1:nrow(new_z)) new_z[r, z[r]] <- 1
+    z <- new_z
+  }
+  if(nrow(z) != max(match_item$new)) stop("Matrix z must contain have exactly one row per item", call. = FALSE)
+  if(any(z %in% 0:1 == FALSE)) stop("Matrix z must contain only 0 and 1", call. = FALSE)
+  if(ncol(z) >= nrow(z)) stop("Too many dimensions specified in matrix z", call. = FALSE)
+  if(any(apply(z, 2, sum) == 0)) stop("A dimension in matrix z has no items", call. = FALSE)
+  if(any(apply(z, 1, sum) == 0)) stop("An item in matrix z has no associated dimensions", call. = FALSE)
+  
+  stan_data <- list(
+    I  = max(match_item$new),
+    J  = max(match_id$new),
+    D  = ncol(z),
+    N  = length(response),
+    ii = match_item$new,
+    jj = match_id$new,
+    y  = response,
+    z  = z)
+  
+  code_file <- system.file("extdata", "mrasch.stan", package = "edstan")
+  
+  stan_fit <- rstan::stan(file = code_file,
+                          data = stan_data,
+                          ... )
+  
+  RC <- mrasch_stanfit$new(fit = stan_fit,
+                           data = stan_data,
+                           person_names = unique(match_id$old),
+                           item_names = unique(match_item$old) )
+  
+  return(RC)
+  
+}
+
+
+#' Estimate the multidimensional Rasch model using a response matrix.
+#' 
+#' @param response_matrix A response matrix. Columns represent items, and rows represent persons. Each element is one or zero or may be NA if missing.
+#' @param z A design matrix for the random effects.
+#' @param ... Additional options passed to \code{\link[rstan]{stan}}.
+#' @return A \code{\link{mrasch_stanfit}} object.
+#' @seealso See \code{\link{mrasch_long_stan}} for long-form data. See \code{\link{mrasch_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
+#' @export
+mrasch_wide_stan <- function(response_matrix,
+                             z,
+                             ... ) {
+  
+  vector_list <- response_matrix_to_long_stan(response_matrix)
+  
+  RC <- mrasch_long_stan(id = vector_list$id,
+                         item = vector_list$item,
+                         response = vector_list$response,
+                         z = z,
+                         ... ) 
+  
+  return(RC)
+  
+}

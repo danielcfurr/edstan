@@ -1,44 +1,44 @@
 ################################################################################
-# 2PL reference class
+# Rasch model reference class
 
-#' The two-parameteric logistic Reference Class.
+#' The Rasch model Reference Class.
 #'
 #' @field person_names A character vector for person names.
 #' @field item_names A character vector for item names.
 #' @seealso 
 #' See \code{\link{common_stanfit}} for additional methods. See 
-#' \code{\link{twopl_long_stan}} and \code{\link{twopl_wide_stan}} for 
-#' estimating the 2PL. See \code{\link{plot_icc}} for addtional options for
-#' \code{icc}.
+#' \code{\link{rasch_long_stan}} and \code{\link{rasch_wide_stan}} for 
+#' estimating the Rasch model. See \code{\link{plot_icc}} for addtional options 
+#' for \code{icc}.
 #' @export
-twopl_stanfit <- setRefClass("twopl_stanfit",
+rasch_stanfit <- setRefClass("rasch_stanfit",
                              contains = "common_stanfit",
                              fields = c("person_names", "item_names"))
 
-twopl_stanfit$methods(
+rasch_stanfit$methods(
   show = function(decimals = 2) {
     "Display customized output."
     print_header_stan(fit)
-    print_stan(fit,
-               pars = "alpha", 
-               title = "Discrimination parameters:",
-               names = list(alpha = item_names),
-               decimals = decimals)
-   print_stan(fit, 
-              pars = "beta", 
-              title = "Difficulty parameters:",
-              names = list(beta = item_names),
-              decimals = decimals )
-   print_vector_stan(fit, 
-                     pars="theta", 
-                     title="Ability parameter vector:")
+    print_stan(fit, 
+               pars = "beta", 
+               title = "Difficulty parameters:",
+               names = list(beta = item_names),
+               decimals = decimals )
+    print_stan(fit, 
+               pars = "sigma", 
+               title = "Person standard deviation parameters:",
+               decimals = decimals )
+    print_vector_stan(fit, 
+                      pars="theta", 
+                      title="Ability parameter vector:")
   })
 
-twopl_stanfit$methods(
+rasch_stanfit$methods(
   icc = function(item, ...) {
     "Plot an item characteristic curve."
     inputs <- list(...)
     inputs[["fit"]] <- fit
+    inputs[["alpha"]] = 1
     inputs[["gamma"]] = 0
     inputs <- finish_icc_method_inputs_stan(item, inputs, item_names)
     do.call(plot_icc, inputs)
@@ -46,16 +46,16 @@ twopl_stanfit$methods(
 
 
 ################################################################################
-# 2PL wrappers
+# Rasch model wrappers
 
-#' Estimate the two-parameter logistic model using long-form data.
+#' Estimate the Rasch model using long-form data.
 #' 
 #' @param id A vector identifying persons.
 #' @param item A vector identifying persons.
 #' @param response A vector coded as 1 for a correct response and 0 otherwise.
 #' @param ... Additional options passed to \code{\link[rstan]{stan}}.
-#' @return A \code{\link{twopl_stanfit}} object.
-#' @seealso See \code{\link{twopl_wide_stan}} for wide-form data. See \code{\link{twopl_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
+#' @return A \code{\link{rasch_stanfit}} object.
+#' @seealso See \code{\link{rasch_wide_stan}} for wide-form data. See \code{\link{rasch_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
 #' @examples
 #' # Make the spelling data long-form
 #' require(reshape2)
@@ -64,10 +64,10 @@ twopl_stanfit$methods(
 #' long <- melt(wide, id.vars = "id", variable.name = "item", value.name = "response")
 #' 
 #' # Estimate the model
-#' myfit <- twopl_long_stan(long$id, long$item, long$response, chains = 4, iter = 200)
+#' myfit <- rasch_long_stan(long$id, long$item, long$response, chains = 4, iter = 200)
 #' myfit$show()
 #' @export
-twopl_long_stan <- function(id,
+rasch_long_stan <- function(id,
                             item,
                             response,
                             ... ) {
@@ -90,14 +90,14 @@ twopl_long_stan <- function(id,
     ii = match_item$new,
     jj = match_id$new,
     y  = response )
-
-  code_file <- system.file("extdata", "twopl.stan", package = "edstan")
+  
+  code_file <- system.file("extdata", "rasch.stan", package = "edstan")
   
   stan_fit <- rstan::stan(file = code_file,
-                   data = stan_data,
-                   ... )
+                          data = stan_data,
+                          ... )
   
-  RC <- twopl_stanfit$new(fit = stan_fit,
+  RC <- rasch_stanfit$new(fit = stan_fit,
                           data = stan_data,
                           person_names = unique(match_id$old),
                           item_names = unique(match_item$old) )
@@ -107,22 +107,22 @@ twopl_long_stan <- function(id,
 }
 
 
-#' Estimate the two-parameter logistic model using a response matrix.
+#' Estimate the Rasch model using a response matrix.
 #' 
 #' @param response_matrix A response matrix. Columns represent items, and rows represent persons. Each element is one or zero or may be NA if missing.
 #' @param ... Additional options passed to \code{\link[rstan]{stan}}.
-#' @return A \code{\link{twopl_stanfit}} object.
-#' @seealso See \code{\link{twopl_long_stan}} for long-form data. See \code{\link{twopl_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
+#' @return A \code{\link{rasch_stanfit}} object.
+#' @seealso See \code{\link{rasch_long_stan}} for long-form data. See \code{\link{rasch_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
 #' @examples
-#' myfit <- twopl_wide_stan(spelling[, 2:5], chains = 4, iter = 200)
+#' myfit <- rasch_wide_stan(spelling[, 2:5], chains = 4, iter = 200)
 #' myfit$show()
 #' @export
-twopl_wide_stan <- function(response_matrix,
+rasch_wide_stan <- function(response_matrix,
                             ... ) {
   
   vector_list <- response_matrix_to_long_stan(response_matrix)
   
-  RC <- twopl_long_stan(id = vector_list$id,
+  RC <- rasch_long_stan(id = vector_list$id,
                         item = vector_list$item,
                         response = vector_list$response,
                         ... ) 
