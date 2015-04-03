@@ -3,9 +3,16 @@
 #
 # The user will have direct access to these functions and classes. For this
 # reason, everything in this file requires help documentation.
+################################################################################
+
+# This is a bit of roxygen documentation that indicates that rstan is to be
+# loaded when edstan is loaded. Necessary for get_model_stan() to work for some
+# reason I don't understand.
+#' @import rstan
+NULL
 
 
-#-------------------------------------------------------------------------------
+################################################################################
 # common Reference Class
 
 #' The common Reference Class for edstan.
@@ -77,7 +84,7 @@ common_stanfit$methods(
 
 
 
-#-------------------------------------------------------------------------------
+################################################################################
 # Exported functions
 
 #' Retrieve a data frame of parameter estimates from a \code{stanfit} object.
@@ -301,5 +308,70 @@ plot_autocor <- function(fit, pars, back = 10, show_matrix = FALSE, show_plot = 
   }
   
   if(show_matrix) return(correlations)
+  
+}
+
+
+# Accepts name for .stan file. Loads the associated stan_model from Rdata file,
+# or creates it if it does not exist.
+
+#' Load or save a stan model from a .Rdata file.
+#' 
+#' @param model A string for the name of an \code{edstan} model.
+#' @return 
+#' Returns a Stan model object for the specified model..
+#' @details
+#' This function is used to create a Stan model object from a Stan program file
+#' and then to save the Stan model object in an .Rdata file. The usual use for
+#' this function is create the .Rdata file the first time a given 
+#' \code{edstan} wrapper is called. On subsequent calls to the given wrapper, 
+#' the Stan model object is just loaded from the .Rdata file, improving the
+#' speed of the estimation. In general, users will have no need to use this
+#' function directly.
+#' @examples
+#' rasch_model_obj <- get_model_stan("rasch")
+#' 
+#' # If we wanted to call this for every edstan model at once while we take 
+#' # a lunch break:
+#' folder <- system.file("extdata", package = "edstan")
+#' files <- dir(folder)
+#' for(f in files) {
+#'   if(grepl("[.]stan$", f)) {
+#'     model <- sub("[.]stan$", "", f)
+#'     get_model_stan(model)
+#'   }
+#' }
+#' @export
+get_model_stan <- function(model) {
+  
+  rdata_file <- file.path(system.file("extdata", package = "edstan"),
+                          paste(model, ".Rdata", sep = ""))
+  stan_file <- file.path(system.file("extdata", package = "edstan"),
+                         paste(model, ".stan", sep = ""))
+  
+  if(!file.exists(stan_file)) stop("Stan program file not found: ", stan_file)
+  
+  # If the Rdata file exists, load its contents. If not, try to create it.
+  if(file.exists(rdata_file)) {
+    
+    load(rdata_file)
+    
+  } else {
+    
+    stanmodel_obj <- rstan::stan_model(file = stan_file, 
+                                       model_name = model,
+                                       save_dso = TRUE)
+    try(save(stanmodel_obj, file = rdata_file))
+    
+    # Let user know that file was written (or not).
+    if(file.exists(rdata_file)) {
+      message("Stan model file saved: ", rdata_file)
+    } else {
+      warn("Failed to save Stan model file: ", rdata_file)
+    }
+    
+  }
+  
+  return(stanmodel_obj)
   
 }

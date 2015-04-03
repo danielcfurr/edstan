@@ -9,7 +9,7 @@ rasch_wide_stan(response_matrix, ...)
 \arguments{
 \item{response_matrix}{A response matrix. Columns represent items, and rows represent persons. Each element is one or zero or may be NA if missing.}
 
-\item{...}{Additional options passed to \code{\link[rstan]{stan}}.}
+\item{...}{Additional options passed to \code{\link[rstan]{sampling}}.}
 }
 \value{
 A \code{\link{rasch_stanfit}} object.

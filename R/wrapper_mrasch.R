@@ -54,7 +54,7 @@ mrasch_stanfit$methods(
 #' @param item A vector identifying persons.
 #' @param response A vector coded as 1 for a correct response and 0 otherwise.
 #' @param z A design matrix for the random effects.
-#' @param ... Additional options passed to \code{\link[rstan]{stan}}.
+#' @param ... Additional options passed to \code{\link[rstan]{sampling}}.
 #' @return A \code{\link{mrasch_stanfit}} object.
 #' @seealso See \code{\link{mrasch_wide_stan}} for wide-form data. See \code{\link{mrasch_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
 #' @export
@@ -69,29 +69,29 @@ mrasch_long_stan <- function(id,
   
   # Additional checks on response vector. Must be numeric and 0, 1.
   try(response <- as.numeric(response))
-  if(is.null(response)) stop("response must be numeric", call. = FALSE)
-  if(!all(response %in% 0:1)) stop("response must contain only 0 and 1", call. = FALSE)
+  if(is.null(response)) stop("response must be numeric")
+  if(!all(response %in% 0:1)) stop("response must contain only 0 and 1")
 
   match_id <- match_id_stan(id)
   match_item <- match_id_stan(item)
   
   try(z <- as.matrix(z))
-  if(is.null(z)) stop("z must be a matrix or vector", call. = FALSE)
+  if(is.null(z)) stop("z must be a matrix or vector")
   # If z is a vector of integers indicating dimension for each item, switch it
   # to a design matrix. Check the values for z first.
   if(ncol(z) == 1) {
     dims <- 1:max(z)
-    if(any(dims %in% z == FALSE)) stop("Invalid dimensions indicated in vector z", call. = FALSE)
-    if(any(z %in% dims == FALSE)) stop("Invalid dimensions indicated in vector z", call. = FALSE)
+    if(any(dims %in% z == FALSE)) stop("Invalid dimensions indicated in vector z")
+    if(any(z %in% dims == FALSE)) stop("Invalid dimensions indicated in vector z")
     new_z <- matrix(0, ncol = max(dims), nrow = nrow(z))
     for(r in 1:nrow(new_z)) new_z[r, z[r]] <- 1
     z <- new_z
   }
-  if(nrow(z) != max(match_item$new)) stop("Matrix z must contain have exactly one row per item", call. = FALSE)
-  if(any(z %in% 0:1 == FALSE)) stop("Matrix z must contain only 0 and 1", call. = FALSE)
-  if(ncol(z) >= nrow(z)) stop("Too many dimensions specified in matrix z", call. = FALSE)
-  if(any(apply(z, 2, sum) == 0)) stop("A dimension in matrix z has no items", call. = FALSE)
-  if(any(apply(z, 1, sum) == 0)) stop("An item in matrix z has no associated dimensions", call. = FALSE)
+  if(nrow(z) != max(match_item$new)) stop("Matrix z must contain have exactly one row per item")
+  if(any(z %in% 0:1 == FALSE)) stop("Matrix z must contain only 0 and 1")
+  if(ncol(z) >= nrow(z)) stop("Too many dimensions specified in matrix z")
+  if(any(apply(z, 2, sum) == 0)) stop("A dimension in matrix z has no items")
+  if(any(apply(z, 1, sum) == 0)) stop("An item in matrix z has no associated dimensions")
   
   stan_data <- list(
     I  = max(match_item$new),
@@ -103,17 +103,17 @@ mrasch_long_stan <- function(id,
     y  = response,
     z  = z)
   
-  code_file <- system.file("extdata", "mrasch.stan", package = "edstan")
+  model_obj <- get_model_stan("mrasch")
   
-  stan_fit <- rstan::stan(file = code_file,
-                          data = stan_data,
-                          ... )
+  stan_fit <- rstan::sampling(object = model_obj,
+                              data = stan_data,
+                              ... )
   
   RC <- mrasch_stanfit$new(fit = stan_fit,
                            data = stan_data,
                            person_names = unique(match_id$old),
                            item_names = unique(match_item$old) )
-  
+
   return(RC)
   
 }

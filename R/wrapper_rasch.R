@@ -91,11 +91,11 @@ rasch_long_stan <- function(id,
     jj = match_id$new,
     y  = response )
   
-  code_file <- system.file("extdata", "rasch.stan", package = "edstan")
+  model_obj <- get_model_stan("rasch")
   
-  stan_fit <- rstan::stan(file = code_file,
-                          data = stan_data,
-                          ... )
+  stan_fit <- rstan::sampling(object = model_obj,
+                              data = stan_data,
+                              ... )
   
   RC <- rasch_stanfit$new(fit = stan_fit,
                           data = stan_data,
@@ -110,7 +110,7 @@ rasch_long_stan <- function(id,
 #' Estimate the Rasch model using a response matrix.
 #' 
 #' @param response_matrix A response matrix. Columns represent items, and rows represent persons. Each element is one or zero or may be NA if missing.
-#' @param ... Additional options passed to \code{\link[rstan]{stan}}.
+#' @param ... Additional options passed to \code{\link[rstan]{sampling}}.
 #' @return A \code{\link{rasch_stanfit}} object.
 #' @seealso See \code{\link{rasch_long_stan}} for long-form data. See \code{\link{rasch_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
 #' @examples

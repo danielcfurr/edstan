@@ -13,7 +13,7 @@ twopl_long_stan(id, item, response, ...)
 
 \item{response}{A vector coded as 1 for a correct response and 0 otherwise.}
 
-\item{...}{Additional options passed to \code{\link[rstan]{stan}}.}
+\item{...}{Additional options passed to \code{\link[rstan]{sampling}}.}
 }
 \value{
 A \code{\link{twopl_stanfit}} object.

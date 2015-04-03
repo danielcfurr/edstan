@@ -53,7 +53,7 @@ twopl_stanfit$methods(
 #' @param id A vector identifying persons.
 #' @param item A vector identifying persons.
 #' @param response A vector coded as 1 for a correct response and 0 otherwise.
-#' @param ... Additional options passed to \code{\link[rstan]{stan}}.
+#' @param ... Additional options passed to \code{\link[rstan]{sampling}}.
 #' @return A \code{\link{twopl_stanfit}} object.
 #' @seealso See \code{\link{twopl_wide_stan}} for wide-form data. See \code{\link{twopl_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
 #' @examples
@@ -91,11 +91,11 @@ twopl_long_stan <- function(id,
     jj = match_id$new,
     y  = response )
 
-  code_file <- system.file("extdata", "twopl.stan", package = "edstan")
+  model_obj <- get_model_stan("twopl")
   
-  stan_fit <- rstan::stan(file = code_file,
-                   data = stan_data,
-                   ... )
+  stan_fit <- rstan::sampling(object = model_obj,
+                              data = stan_data,
+                              ... )
   
   RC <- twopl_stanfit$new(fit = stan_fit,
                           data = stan_data,

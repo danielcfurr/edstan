@@ -15,7 +15,7 @@ mrasch_long_stan(id, item, response, z, ...)
 
 \item{z}{A design matrix for the random effects.}
 
-\item{...}{Additional options passed to \code{\link[rstan]{stan}}.}
+\item{...}{Additional options passed to \code{\link[rstan]{sampling}}.}
 }
 \value{
 A \code{\link{mrasch_stanfit}} object.

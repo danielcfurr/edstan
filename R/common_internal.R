@@ -4,6 +4,8 @@
 # Everying in this file is NOT "exported", meaning that the user will have no
 # easy access to these functions. The functions are "internal". They do not
 # necessarily need error-trapping and never need help file documentation.
+################################################################################
+
 
 match_id_stan <- function(x) {
   old_id_vector <- as.character(x)
@@ -22,14 +24,14 @@ finish_icc_method_inputs_stan <- function(item, inputs, item_names) {
 
   if(is.numeric(item)) {
     # Check that there is an item with this ID.
-    if(item %in% 1:length(item_names) == FALSE) stop("Item ID is out of range.", call. = FALSE)
+    if(item %in% 1:length(item_names) == FALSE) stop("Item ID is out of range.")
     inputs[["item"]] <- item
   } else {
     # Check that there is an item with this name. Look up its ID.
     search_string <- paste("^", item, "$", sep = "")
     item_number <- grep(search_string, item_names)
     # If item name is not found, item_number will have length = 0.
-    if(length(item_number) == 0) stop("Item name not found.", call. = FALSE)
+    if(length(item_number) == 0) stop("Item name not found.")
     inputs[["item"]] <- item_number
   }
   
@@ -55,13 +57,13 @@ response_matrix_to_long_stan <- function(x, permitted = c(0, 1, NA)) {
   # Check that x is a matrix.
   # If ncol(x) == 1, then it was a vector, not matrix.
   if(is.null(x) | ncol(x) == 1) {
-    stop(paste(x_name, "must be a matrix or coercible to matrix"), call. = FALSE)
+    stop(paste(x_name, "must be a matrix or coercible to matrix"))
   }
   
   # Check that x contains only the permitted values.
   if(!all(x %in% permitted)) {
     permitted_char <- paste(permitted, collapse = ", ")
-    stop(paste(x_name, "must contain only", permitted_char), call. = FALSE)
+    stop(paste(x_name, "must contain only", permitted_char))
   }
   
   # Extract person id names or numbers.
@@ -136,7 +138,7 @@ check_vectors_stan <- function(permitted = c("numeric"), ...) {
   }
   
   # If there are errors, then stop and report
-  if(length(msg) > 0) stop(msg, call. = FALSE)
+  if(length(msg) > 0) stop(msg)
   
   return(NULL)
   
