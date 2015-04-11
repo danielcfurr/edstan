@@ -1,15 +1,12 @@
-################################################################################
-# 2PL reference class
+# 2PL reference class ----------------------------------------------------------
 
 #' The two-parameteric logistic Reference Class.
 #'
 #' @field person_names A character vector for person names.
 #' @field item_names A character vector for item names.
-#' @seealso 
-#' See \code{\link{common_stanfit}} for additional methods. See 
-#' \code{\link{twopl_long_stan}} and \code{\link{twopl_wide_stan}} for 
-#' estimating the 2PL. See \code{\link{plot_icc}} for addtional options for
-#' \code{icc}.
+#' @seealso See \code{\link{common_stanfit}} for additional methods. See
+#'   \code{\link{twopl_stan}} for estimating the 2PL. See \code{\link{plot_icc}}
+#'   for addtional options for \code{icc}.
 #' @export
 twopl_stanfit <- setRefClass("twopl_stanfit",
                              contains = "common_stanfit",
@@ -20,17 +17,17 @@ twopl_stanfit$methods(
     "Display customized output."
     print_header_stan(fit)
     print_stan(fit,
-               pars = "alpha", 
+               pars = "alpha",
                title = "Discrimination parameters:",
                names = list(alpha = item_names),
                decimals = decimals)
-   print_stan(fit, 
-              pars = "beta", 
+   print_stan(fit,
+              pars = "beta",
               title = "Difficulty parameters:",
               names = list(beta = item_names),
               decimals = decimals )
-   print_vector_stan(fit, 
-                     pars="theta", 
+   print_vector_stan(fit,
+                     pars="theta",
                      title="Ability parameter vector:")
   })
 
@@ -45,44 +42,73 @@ twopl_stanfit$methods(
   })
 
 
-################################################################################
-# 2PL wrappers
+# 2PL wrapper ------------------------------------------------------------------
 
-#' Estimate the two-parameter logistic model using long-form data.
-#' 
-#' @param id A vector identifying persons.
-#' @param item A vector identifying persons.
+#' Estimate the two-parameter logistic model with Stan
+#'
+#' @param response_matrix A response matrix. Columns represent items, and rows
+#'   represent persons. Each element indicates a correct response by one or
+#'   zero, and NA may be supplied for missing responses.
+#' @param id A vector identifying persons. Required if \code{response_matrix} is
+#'   not supplied.
+#' @param item A vector identifying persons. Required if \code{response_matrix}
+#'   is not supplied.
 #' @param response A vector coded as 1 for a correct response and 0 otherwise.
-#' @param ... Additional options passed to \code{\link[rstan]{sampling}}.
-#' @return A \code{\link{twopl_stanfit}} object.
-#' @seealso See \code{\link{twopl_wide_stan}} for wide-form data. See \code{\link{twopl_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
+#'   Required if \code{response_matrix} is not supplied.
+#' @param ... Additional options passed to \code{\link[rstan]{sampling}}. The
+#'   usual choices are \code{iter} for the number of iterations and
+#'   \code{chains} for the number of chains.
+#' @return A \code{\link{twopl_stanfit}} Reference Class object.
+#' @seealso See \code{\link[rstan]{sampling}} for additional options. See
+#'   \code{\link{twopl_stanfit}} and \code{\link{common_stanfit}} for applicable
+#'   Reference Class methods.
 #' @examples
-#' # Make the spelling data long-form
+#' # If the data are in a response matrix ("wide-form"):
+#' myfit1 <- twopl_stan(response_matrix = spelling[, 2:5], chains = 4, iter = 200)
+#' myfit1$show()
+#'
+#' # Make the spelling data long-form for next example
 #' require(reshape2)
 #' wide <- spelling[, 2:5]
 #' wide$id <- 1:nrow(wide)
-#' long <- melt(wide, id.vars = "id", variable.name = "item", value.name = "response")
-#' 
-#' # Estimate the model
-#' myfit <- twopl_long_stan(long$id, long$item, long$response, chains = 4, iter = 200)
-#' myfit$show()
+#' long <- melt(wide, id.vars = "id", variable.name = "item",
+#'              value.name = "response")
+#'
+#' # If the data are in "long-form":
+#' myfit2 <- twopl_stan(id = long$id, item = long$item,
+#'                      response = long$response, chains = 4, iter = 200)
+#' myfit2$show()
 #' @export
-twopl_long_stan <- function(id,
-                            item,
-                            response,
-                            ... ) {
-  
+twopl_stan <- function(response_matrix = NULL,
+                       id = NULL,
+                       item = NULL,
+                       response = NULL,
+                       ... ) {
+
+  # If response_matrix is provided, use to get vectors for id, item, response.
+  # Else, check that id, item, and response are all supplied.
+  if(!is.null(response_matrix)) {
+    vector_list <- response_matrix_to_long_stan(response_matrix)
+    id = vector_list$id
+    item = vector_list$item
+    response = vector_list$response
+  } else {
+    if(any(is.null(id), is.null(item), is.null(response))) {
+      stop("All three of id, item, and response must be supplied if response_matrix is not supplied")
+    }
+  }
+
   # Check input vectors for errors.
   check_vectors_stan(permitted = c("numeric", "character"), id, item, response)
-  
+
   # Additional checks on response vector. Must be numeric and 0, 1.
   try(response <- as.numeric(response))
   if(is.null(response)) stop("response must be numeric")
   if(!all(response %in% 0:1)) stop("response must contain only 0 and 1.")
-  
+
   match_id <- match_id_stan(id)
   match_item <- match_id_stan(item)
-  
+
   stan_data <- list(
     I  = max(match_item$new),
     J  = max(match_id$new),
@@ -92,41 +118,20 @@ twopl_long_stan <- function(id,
     y  = response )
 
   model_obj <- get_model_stan("twopl")
-  
+
   stan_fit <- rstan::sampling(object = model_obj,
                               data = stan_data,
                               ... )
-  
+
   RC <- twopl_stanfit$new(fit = stan_fit,
                           data = stan_data,
                           person_names = unique(match_id$old),
                           item_names = unique(match_item$old) )
-  
+
   return(RC)
-  
+
 }
 
 
-#' Estimate the two-parameter logistic model using a response matrix.
-#' 
-#' @param response_matrix A response matrix. Columns represent items, and rows represent persons. Each element is one or zero or may be NA if missing.
-#' @param ... Additional options passed to \code{\link[rstan]{stan}}.
-#' @return A \code{\link{twopl_stanfit}} object.
-#' @seealso See \code{\link{twopl_long_stan}} for long-form data. See \code{\link{twopl_stanfit}} and \code{\link{common_stanfit}} for applicable methods.
-#' @examples
-#' myfit <- twopl_wide_stan(spelling[, 2:5], chains = 4, iter = 200)
-#' myfit$show()
-#' @export
-twopl_wide_stan <- function(response_matrix,
-                            ... ) {
-  
-  vector_list <- response_matrix_to_long_stan(response_matrix)
-  
-  RC <- twopl_long_stan(id = vector_list$id,
-                        item = vector_list$item,
-                        response = vector_list$response,
-                        ... ) 
-  
-  return(RC)
-  
-}
+
+
