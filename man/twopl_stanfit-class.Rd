@@ -4,9 +4,9 @@
 \name{twopl_stanfit-class}
 \alias{twopl_stanfit}
 \alias{twopl_stanfit-class}
-\title{The two-parameteric logistic Reference Class.}
+\title{The two-parameteric logistic Reference Class}
 \description{
-The two-parameteric logistic Reference Class.
+The two-parameteric logistic Reference Class
 }
 \section{Fields}{
 

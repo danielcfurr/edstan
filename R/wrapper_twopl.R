@@ -1,6 +1,6 @@
 # 2PL reference class ----------------------------------------------------------
 
-#' The two-parameteric logistic Reference Class.
+#' The two-parameteric logistic Reference Class
 #'
 #' @field person_names A character vector for person names.
 #' @field item_names A character vector for item names.

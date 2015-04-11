@@ -4,9 +4,9 @@
 \name{rasch_stanfit-class}
 \alias{rasch_stanfit}
 \alias{rasch_stanfit-class}
-\title{The Rasch model Reference Class.}
+\title{The Rasch model Reference Class}
 \description{
-The Rasch model Reference Class.
+The Rasch model Reference Class
 }
 \section{Fields}{
 
