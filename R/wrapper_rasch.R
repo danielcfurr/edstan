@@ -4,11 +4,10 @@
 #'
 #' @field person_names A character vector for person names.
 #' @field item_names A character vector for item names.
-#' @seealso
-#' See \code{\link{common_stanfit}} for additional methods. See
-#' \code{\link{rasch_long_stan}} and \code{\link{rasch_wide_stan}} for
-#' estimating the Rasch model. See \code{\link{plot_icc}} for addtional options
-#' for \code{icc}.
+#' @seealso See \code{\link{common_stanfit}} for additional methods. See
+#'   \code{\link{rasch_long_stan}} and \code{\link{rasch_wide_stan}} for
+#'   estimating the Rasch model. See \code{\link{plot_icc}} for addtional
+#'   options for \code{icc}.
 #' @export
 rasch_stanfit <- setRefClass("rasch_stanfit",
                              contains = "common_stanfit",
@@ -66,13 +65,13 @@ rasch_stanfit$methods(
 #'   Reference Class methods.
 #' @examples
 #' # If the data are in a response matrix ("wide-form"):
-#' myfit1 <- rasch_stan(response_matrix = spelling[, 2:5], chains = 4,
-#'                      iter = 200)
+#' x <- spelling[, 2:5]
+#' myfit1 <- rasch_stan(response_matrix = x, chains = 4, iter = 200)
 #' myfit1$show()
 #'
 #' # Make the spelling data long-form for next example
 #' require(reshape2)
-#' wide <- spelling[, 2:5]
+#' wide <- x
 #' wide$id <- 1:nrow(wide)
 #' long <- melt(wide, id.vars = "id", variable.name = "item",
 #'              value.name = "response")
