@@ -4,9 +4,9 @@
 \name{rasch_stanfit-class}
 \alias{rasch_stanfit}
 \alias{rasch_stanfit-class}
-\title{The Rasch model Reference Class.}
+\title{The Rasch model Reference Class}
 \description{
-The Rasch model Reference Class.
+The Rasch model Reference Class
 }
 \section{Fields}{
 
@@ -22,8 +22,8 @@ The Rasch model Reference Class.
 }}
 \seealso{
 See \code{\link{common_stanfit}} for additional methods. See
-\code{\link{rasch_long_stan}} and \code{\link{rasch_wide_stan}} for
-estimating the Rasch model. See \code{\link{plot_icc}} for addtional options
-for \code{icc}.
+  \code{\link{rasch_long_stan}} and \code{\link{rasch_wide_stan}} for
+  estimating the Rasch model. See \code{\link{plot_icc}} for addtional
+  options for \code{icc}.
 }
 

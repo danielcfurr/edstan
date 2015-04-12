@@ -4,9 +4,9 @@
 \name{twopl_stanfit-class}
 \alias{twopl_stanfit}
 \alias{twopl_stanfit-class}
-\title{The two-parameteric logistic Reference Class.}
+\title{The two-parameteric logistic Reference Class}
 \description{
-The two-parameteric logistic Reference Class.
+The two-parameteric logistic Reference Class
 }
 \section{Fields}{
 
@@ -22,8 +22,7 @@ The two-parameteric logistic Reference Class.
 }}
 \seealso{
 See \code{\link{common_stanfit}} for additional methods. See
-\code{\link{twopl_long_stan}} and \code{\link{twopl_wide_stan}} for
-estimating the 2PL. See \code{\link{plot_icc}} for addtional options for
-\code{icc}.
+  \code{\link{twopl_stan}} for estimating the 2PL. See \code{\link{plot_icc}}
+  for addtional options for \code{icc}.
 }
 
