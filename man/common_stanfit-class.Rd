@@ -32,13 +32,16 @@ The common Reference Class for edstan.
 
 \item{\code{plot(...)}}{Plot posterior credible intervals.}
 
+\item{\code{stancode()}}{Return the Stan code}
+
 \item{\code{traceplot(pars, ...)}}{Draw traceplots.}
 }}
 \seealso{
-The \code{common_stanfit} methods are closely related to \code{rstan} and \code{edstan} functions.
-See \code{rstan} functions \code{\link[rstan]{pairs.stanfit}},
-\code{\link[rstan]{plot-method}}, and \code{\link[rstan]{traceplot}}.
-See \code{edstan} functions \code{\link{get_parameters}},
+The \code{common_stanfit} methods are closely related to \code{rstan} and
+\code{edstan} functions. See \code{rstan} functions
+\code{\link[rstan]{pairs.stanfit}}, \code{\link[rstan]{plot-method}},
+\code{\link[rstan]{traceplot}}, and \code{\link[rstan]{get_stancode}}. See
+\code{edstan} functions \code{\link{get_parameters}},
 \code{\link{get_mean_logLik}}, \code{\link{get_best_logLik}},
 \code{\link{get_dic}}, and \code{\link{plot_autocor}}.
 }

@@ -35,15 +35,15 @@ A \code{\link{rasch_stanfit}} Reference Class object.
 Estimate the multidimensional Rasch model using Stan
 }
 \examples{
-The spelling data response matrix
+# The spelling data response matrix
 x <- spelling[, 2:5]
 
 # We pretend that the first two items in the spelling data load on a different
-# dimension than the second two.
+# dimension than the second two
 z <- cbind(c(1, 1, 0, 0), c(0, 0, 1, 1))
 
 # We estimate the model
-myfit <- mrasch(response_matrix = x, z = z, iter = 200, chains = 4)
+myfit <- mrasch_stan(response_matrix = x, z = z, iter = 200, chains = 4)
 }
 \seealso{
 See \code{\link[rstan]{sampling}} for additional options. See
