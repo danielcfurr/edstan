@@ -6,8 +6,7 @@
 ################################################################################
 
 # This is a bit of roxygen documentation that indicates that rstan is to be
-# loaded when edstan is loaded. Necessary for get_model_stan() to work for some
-# reason I don't understand.
+# loaded when edstan is loaded.
 #' @import rstan
 NULL
 
@@ -24,9 +23,8 @@ NULL
 #' \code{edstan} functions. See \code{rstan} functions
 #' \code{\link[rstan]{pairs.stanfit}}, \code{\link[rstan]{plot-method}},
 #' \code{\link[rstan]{traceplot}}, and \code{\link[rstan]{get_stancode}}. See
-#' \code{edstan} functions \code{\link{get_parameters}},
-#' \code{\link{get_mean_logLik}}, \code{\link{get_best_logLik}},
-#' \code{\link{get_dic}}, and \code{\link{plot_autocor}}.
+#' \code{edstan} functions \code{\link{get_parameters}} and
+#' \code{\link{plot_autocor}}.
 #' @export
 common_stanfit <- setRefClass("common_stanfit",
                               fields = c("fit", "data"))
@@ -66,29 +64,16 @@ common_stanfit$methods(
   })
 
 common_stanfit$methods(
-  mean_logLik = function() {
-    "Get the mean posterior log-likelihood."
-    get_mean_logLik(fit)
-  })
-
-common_stanfit$methods(
-  best_logLik = function() {
-    "Get the posterior log-likelihood evaluated at posterior parameter means."
-    get_best_logLik(fit, data)
-  })
-
-common_stanfit$methods(
-  dic = function() {
-    "View mean deviance, deviance evaluated at posterior parameter means, and DIC."
-    get_dic(fit, data)
-  })
-
-common_stanfit$methods(
   autocor = function(pars, ...) {
     "Plot auto-correlations for parameter draws."
     plot_autocor(fit, pars, ...)
   })
 
+common_stanfit$methods(
+  posterior = function(pars, ...) {
+    "Plot posterior density for parameter draws."
+    plot_posterior(fit, pars, ...)
+  })
 
 
 ################################################################################
@@ -108,80 +93,6 @@ common_stanfit$methods(
 get_parameters <- function(fit, ...) {
   whole_summary <- rstan::summary(fit, ...)
   output <- as.data.frame(whole_summary[["summary"]])
-  return(output)
-}
-
-
-#' Get the mean posterior log-likelihood from a \code{stanfit} object.
-#'
-#' @param fit A \code{stanfit} object.
-#' @return The mean posterior log-likelihood.
-#' @examples
-#' myfit <- twopl_wide_stan(spelling[, 2:5], chains = 4, iter = 200)
-#' stan_fit <- myfit$fit
-#' ll <- get_mean_logLik(stan_fit)
-#' @export
-get_mean_logLik <- function(fit) {
-  sim <- slot(fit, "sim")
-  log_list <- rstan::get_logposterior(fit)
-  log_likelihoods <- NULL
-  for(i in 1:length(log_list)) {
-    full_chain <- log_list[[i]]
-    post_warmup <- full_chain[-1*(1:sim$warmup2[i])]
-    log_likelihoods <- c(log_likelihoods, post_warmup)
-  }
-  ll <- mean(log_likelihoods)
-  return(ll)
-}
-
-
-#' Get the posterior log-likelihood evaluated at posterior parameter means.
-#'
-#' @param fit A \code{stanfit} object.
-#' @param data The data list provided in to stan.
-#' @return The posterior log-likelihood evaluated at posterior parameter means.
-#' @examples
-#' myfit <- twopl_wide_stan(spelling[, 2:5], chains = 4, iter = 200)
-#' stan_fit <- myfit$fit
-#' ll <- get_best_logLik(stan_fit)
-#' @export
-get_best_logLik <- function(fit, data) {
-  original_inits <- rstan::get_inits(fit)
-  pars <- names(original_inits[[1]])
-  posterior_means <- list()
-  for(n in pars) {
-    par_table <- get_parameters(fit, pars = n)
-    posterior_means[[n]] <- par_table$mean
-  }
-  posterior_as_inits = list()
-  posterior_as_inits[[1]] <- posterior_means
-  trash <- capture.output(
-    eval <- rstan::stan(fit = fit,
-                        chains = 1,
-                        iter = 1,
-                        data = data,
-                        init = posterior_as_inits)
-  )
-  ll <- rstan::get_logposterior(eval)[[1]]
-  return(ll)
-}
-
-#' View mean deviance, deviance evaluated at posterior parameter means, and DIC.
-#'
-#' @param fit A \code{stanfit} object.
-#' @param data The data list provided in to stan.
-#' @return The posterior log-likelihood evaluated at posterior parameter means.
-#' @examples
-#' myfit <- twopl_wide_stan(spelling[, 2:5], chains = 4, iter = 200)
-#' stan_fit <- myfit$fit
-#' get_dic(stan_fit)
-#' @export
-get_dic <- function(fit, data) {
-  mean_dev <- -2 * get_mean_logLik(fit)
-  best_dev <- -2 * get_best_logLik(fit, data)
-  p <- mean_dev - best_dev
-  DIC <- mean_dev + p
-  output <- c(DIC = DIC, mean_dev = mean_dev, best_dev = best_dev)
   return(output)
 }
 
@@ -319,66 +230,101 @@ plot_autocor <- function(fit, pars, back = 10, show_matrix = FALSE, show_plot = 
 }
 
 
-# Accepts name for .stan file. Loads the associated stan_model from Rdata file,
-# or creates it if it does not exist.
-
-#' Load or save a stan model from a .Rdata file.
+#' Plot kernal densities for parameter posteriors.
 #'
-#' @param model A string for the name of an \code{edstan} model.
+#' @param fit         A \code{stanfit} object.
+#' @param pars        Parameters for which to plot densities.
+#' @param overall     Whether to plot the overall density. Default is TRUE.
+#' @param chains      Whether to plot densities for individual chains. Default is TRUE.
+#' @param legend      Whether to include a legend. Default is FALSE.
+#' @param inc_warmup  Whether to include warmup draws. Default is FALSE.
 #' @return
-#' Returns a Stan model object for the specified model..
-#' @details
-#' This function is used to create a Stan model object from a Stan program file
-#' and then to save the Stan model object in an .Rdata file. The usual use for
-#' this function is create the .Rdata file the first time a given
-#' \code{edstan} wrapper is called. On subsequent calls to the given wrapper,
-#' the Stan model object is just loaded from the .Rdata file, improving the
-#' speed of the estimation. In general, users will have no need to use this
-#' function directly.
+#' One kernal density plot per parameter.
 #' @examples
-#' rasch_model_obj <- get_model_stan("rasch")
+#' # Get an example stanfit object.
+#' myfit <- twopl_wide_stan(spelling[, 2:5], chains = 4, iter = 200)
+#' stan_fit <- myfit$fit
 #'
-#' # If we wanted to call this for every edstan model at once while we take
-#' # a lunch break:
-#' folder <- system.file("extdata", package = "edstan")
-#' files <- dir(folder)
-#' for(f in files) {
-#'   if(grepl("[.]stan$", f)) {
-#'     model <- sub("[.]stan$", "", f)
-#'     get_model_stan(model)
-#'   }
-#' }
+#' # Plot first discrimination parameter with a legend.
+#' plot_posterior(stan_fit, pars = "alpha[1]", legend = TRUE)
+#'
+#' # Show plots for all discrimation parameters on same display.
+#' plot_posterior(stan_fit, pars = "alpha")
 #' @export
-get_model_stan <- function(model) {
+plot_posterior <- function(fit, pars = NULL, overall = TRUE, chains = TRUE,
+                           legend = FALSE, inc_warmup = FALSE) {
 
-  rdata_file <- file.path(system.file("extdata", package = "edstan"),
-                          paste(model, ".Rdata", sep = ""))
-  stan_file <- file.path(system.file("extdata", package = "edstan"),
-                         paste(model, ".stan", sep = ""))
+  opts <- list(object = fit, permuted = FALSE, inc_warmup = inc_warmup)
+  if(!is.null(pars)) opts[["pars"]] <- pars
+  draws <- do.call(rstan::extract, opts)
 
-  if(!file.exists(stan_file)) stop("Stan program file not found: ", stan_file)
+  n_pars <- dim(draws)[3]
+  n_chains <- dim(draws)[2]
+  parameter_names <- dimnames(draws)[["parameters"]]
 
-  # If the Rdata file exists, load its contents. If not, try to create it.
-  if(file.exists(rdata_file)) {
+  if(n_pars > 10) warning("You have requested ", n_pars, " plots. ",
+                          "Try specifying fewer parameters to plot via 'par'.")
 
-    load(rdata_file)
+  # Additional stuff for making more than one plot.
+  if(n_pars > 1) {
+    par_bkp <- par(no.readonly = TRUE)
+    on.exit(try(par(par_bkp)))
+    par(mfrow = c(ceiling(n_pars / 2), 2))
+    par(mar =  c(2, 4, 4, 2) + 0.1)
+  }
 
-  } else {
+  # Collect titles, colors, and line weights for plotting.
+  plot_names <- plot_colors <- plot_lwd <- c()
+  if(overall) {
+    plot_names <- c(plot_names, "Overall")
+    plot_colors <- c(plot_colors, "black")
+    plot_lwd <- c(plot_lwd, 2)
+  }
+  if(chains) {
+    plot_names <- c(plot_names, paste("Chain", 1:n_chains))
+    plot_colors <- c(plot_colors, rainbow(n_chains))
+    plot_lwd <- c(plot_lwd, rep(1, times = n_chains))
+  }
 
-    stanmodel_obj <- rstan::stan_model(file = stan_file,
-                                       model_name = model,
-                                       save_dso = TRUE)
-    try(save(stanmodel_obj, file = rdata_file))
+  for(i in 1:n_pars) {
 
-    # Let user know that file was written (or not).
-    if(file.exists(rdata_file)) {
-      message("Stan model file saved: ", rdata_file)
-    } else {
-      warn("Failed to save Stan model file: ", rdata_file)
+    # Collect "density" objects for overall and/or each chain
+    plot_densities <- list()
+    if(overall) {
+      plot_densities[["overall"]] <- density(draws[,,i])
+    }
+    if(chains) {
+      for(j in 1:n_chains) {
+        plot_densities[[paste("Chain", j)]] <- density(draws[,j,i])
+      }
+    }
+
+    # Make blank plot with appropriate range
+    ylim <- range(sapply(plot_densities, function(x) x[["y"]]))
+    xlim <- range(sapply(plot_densities, function(x) x[["x"]]))
+    plot(xlim, ylim,
+         main = parameter_names[i],
+         ylab = "Density",
+         xlab = NA,
+         type = "n")
+
+    # Plot densities
+    for(j in 1:length(plot_densities)) {
+      lines(x = plot_densities[[j]][["x"]],
+            y = plot_densities[[j]][["y"]],
+            col = plot_colors[j],
+            lwd = plot_lwd[j])
+    }
+
+    if(legend) {
+      legend("topleft",
+             legend = plot_names,
+             col = plot_colors,
+             lty = "solid",
+             lwd = plot_lwd)
     }
 
   }
 
-  return(stanmodel_obj)
-
 }
+

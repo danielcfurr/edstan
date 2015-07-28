@@ -14,18 +14,21 @@ rasch_stanfit <- setRefClass("rasch_stanfit",
                              fields = c("person_names", "item_names"))
 
 rasch_stanfit$methods(
-  show = function(decimals = 2) {
+  show = function(decimals = 2,
+                  probs = c(.025, .25, .5, .75, .975)) {
     "Display customized output."
     print_header_stan(fit)
     print_stan(fit,
                pars = "beta",
                title = "Difficulty parameters:",
                names = list(beta = item_names),
-               decimals = decimals )
+               decimals = decimals,
+               probs = probs)
     print_stan(fit,
                pars = "sigma",
-               title = "Person standard deviation parameters:",
-               decimals = decimals )
+               title = "Ability distribution parameter:",
+               decimals = decimals,
+               probs = probs)
     print_vector_stan(fit,
                       pars="theta",
                       title="Ability parameter vector:")
@@ -56,11 +59,11 @@ rasch_stanfit$methods(
 #'   is not supplied.
 #' @param response A vector coded as 1 for a correct response and 0 otherwise.
 #'   Required if \code{response_matrix} is not supplied.
-#' @param ... Additional options passed to \code{\link[rstan]{sampling}}. The
+#' @param ... Additional options passed to \code{\link[rstan]{stan}}. The
 #'   usual choices are \code{iter} for the number of iterations and
 #'   \code{chains} for the number of chains.
 #' @return A \code{\link{rasch_stanfit}} Reference Class object.
-#' @seealso See \code{\link[rstan]{sampling}} for additional options. See
+#' @seealso See \code{\link[rstan]{stan}} for additional options. See
 #'   \code{\link{rasch_stanfit}} and \code{\link{common_stanfit}} for applicable
 #'   Reference Class methods.
 #' @examples
@@ -119,9 +122,10 @@ rasch_stan <- function(response_matrix = NULL,
     jj = match_id$new,
     y  = response )
 
-  model_obj <- get_model_stan("rasch")
+  model_file <- file.path(system.file("extdata", package = "edstan"),
+                          "rasch.stan")
 
-  stan_fit <- rstan::sampling(object = model_obj,
+  stan_fit <- rstan::stan(file = model_file,
                               data = stan_data,
                               ... )
 
