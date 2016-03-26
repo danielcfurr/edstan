@@ -26,10 +26,19 @@ A \code{\link[rstan]{stanfit}} object.
 Estimate an item response model with Stan
 }
 \examples{
+# Make a suitable data list
 X <- spelling[, 2:5]
 W <- spelling[, 1]
 data_list <- irt_data(X, W = W)
 
+# List the Stan models included in edstan
+folder <- system.file("extdata", package = "edstan")
+dir(folder, "\\\\.stan$")
+
+# Fit a latent regression Rasch and 2PL
+rasch_fit <- irt_stan(data_list, iter = 200, chains = 4)
+twopl_fit <- irt_stan(data_list, model = "2pl_latent_reg.stan",
+                      iter = 200, chains = 4)
 }
 \seealso{
 This function is a wrapper for \code{\link[rstan]{stan}}.
