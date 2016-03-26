@@ -1,12 +1,12 @@
 Package: edstan
 Type: Package
 Title: Stan wrappers for education applications
-Version: 0.108
-Date: 2015-07-28
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Version: 0.2
+Date: 2016-03-25
+Author: Daniel C. Furr
+Maintainer: Daniel C. Furr <danielcfurr@berkeley.edu>
+Description: Assists in fitting several item response models using rstan.
+License: BSD 3-clause license
 Depends: rstan
 LazyData: true
-
+RoxygenNote: 5.0.1
