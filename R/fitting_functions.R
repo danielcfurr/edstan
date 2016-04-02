@@ -278,7 +278,8 @@ print_irt_stan <- function(fit, data_list, probs = c(.025, .25, .5, .75, .975),
   # Print all the subtables
   for(i in 1:length(out_list)) {
     cat(out_labels[i], "\n")
-    summary_to_print <- summary(fit, pars = out_list[[i]], probs = probs)[[1]]
+    summary_to_print <- rstan::summary(fit, pars = out_list[[i]],
+                                       probs = probs)[[1]]
     do.call(print, c(list(summary_to_print), print_opts))
     cat("\n")
   }

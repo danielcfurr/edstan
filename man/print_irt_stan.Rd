@@ -5,7 +5,7 @@
 \title{View a table of parameter posteriors after using \code{irt_stan}}
 \usage{
 print_irt_stan(fit, data_list, probs = c(0.025, 0.25, 0.5, 0.75, 0.975),
-  print_opts = list(digits = 2))
+  print_opts = list(digits = 3))
 }
 \arguments{
 \item{fit}{A \code{stanfit} object created by \code{\link{irt_stan}}.}
@@ -22,7 +22,7 @@ View a table of parameter posteriors after using \code{irt_stan}
 \examples{
 # Make a suitable data list:
 X <- spelling[, 2:5]
-W <- spelling[, 1]
+W <- cbind(1, spelling[, 1])
 data_list <- irt_data(X, W = W)
 
 # Fit a latent regression  2PL
