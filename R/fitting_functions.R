@@ -62,7 +62,7 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
       stop("Vectors y, ii, and jj must have the same length.")
     }
 
-    if(sum(is.na(y, ii, jj)) > 0) {
+    if(sum(is.na(c(y, ii, jj))) > 0) {
       stop("y, ii, and jj may not include NA.")
     }
 
@@ -216,7 +216,7 @@ labelled_integer <- function(x = vector()) {
 #' @examples
 #' # Make a suitable data list:
 #' X <- spelling[, 2:5]
-#' W <- spelling[, 1]
+#' W <- cbind(1, spelling[, 1])
 #' data_list <- irt_data(X, W = W)
 #'
 #' # Fit a latent regression  2PL
@@ -227,7 +227,7 @@ labelled_integer <- function(x = vector()) {
 #' print_irt_stan(twopl_fit, data_list)
 #' @export
 print_irt_stan <- function(fit, data_list, probs = c(.025, .25, .5, .75, .975),
-                           print_opts = list(digits = 2)) {
+                           print_opts = list(digits = 3)) {
 
   possible_pars <- c("alpha", "beta", "kappa", "lambda", "sigma")
   available = possible_pars %in% fit@model_pars
@@ -254,11 +254,11 @@ print_irt_stan <- function(fit, data_list, probs = c(.025, .25, .5, .75, .975),
   }
 
   # Prep item subtable labels
-  ii_unique <- sort(unique(ii))
-  if(is.null(names(ii_unique))) {
-    out_labels <- paste("Item", ii_unique)
+  if(is.null(names(data_list$ii))) {
+    out_labels <- paste("Item", unique(data_list$ii))
   } else {
-    out_labels <- paste0("Item ", ii_unique, ": ", names(ii_unique))
+    out_labels <- paste0("Item ", unique(data_list$ii), ": ",
+                         unique(names(data_list$ii)))
   }
 
   # Prep kappa subtable and label
