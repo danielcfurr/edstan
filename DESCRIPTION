@@ -1,7 +1,7 @@
 Package: edstan
 Type: Package
 Title: Stan wrappers for education applications
-Version: 0.202
+Version: 0.203
 Date: 2016-03-25
 Author: Daniel C. Furr
 Maintainer: Daniel C. Furr <danielcfurr@berkeley.edu>
