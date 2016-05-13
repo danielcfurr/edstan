@@ -1,8 +1,8 @@
 Package: edstan
 Type: Package
 Title: Stan wrappers for education applications
-Version: 0.202
-Date: 2016-03-25
+Version: 0.203
+Date: 2016-05-13
 Author: Daniel C. Furr
 Maintainer: Daniel C. Furr <danielcfurr@berkeley.edu>
 Description: Assists in fitting several item response models using rstan.
