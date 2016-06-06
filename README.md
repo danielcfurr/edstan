@@ -1,6 +1,6 @@
 # Overview
 
-The edstan package for R provides a convenience functions and several pre-programmed Stan item response theory (IRT) models. It's purpose is to make fitting some IRT models using Stan easy. 
+The edstan package for R provides convenience functions and pre-programmed Stan models related to item response theory (IRT). Its purpose is to make fitting common IRT models using Stan easy. 
 
 The following table lists the models packaged with edstan. Each of these may optionally included a latent regression of ability. The Stan code for these models is documented in a series of case studies, linked in the table.
 
@@ -21,6 +21,7 @@ The next table lists the functions packaged with edstan.
 | `labelled_integer()` | Create vector of consecutive integers  |
 | `irt_stan()`         | Wrapper for Running MCMC               |
 | `print_irt_stan()`   | Show table of output                   |
+
 
 # Installation
 
