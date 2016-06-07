@@ -7,7 +7,7 @@
 labelled_integer(x = vector())
 }
 \arguments{
-\item{x}{A vector, which may be (for example) numeric, string, or factor.}
+\item{x}{A vector, which may be numeric, string, or factor.}
 }
 \value{
 A vector of integers corresponding to entries in \code{x}.
@@ -22,13 +22,13 @@ A vector of integers corresponding to entries in \code{x}.
 Transform a vector into consecutive integers
 }
 \examples{
-x <- rep(c("AA", "BB", "CC"), each = 2)
+x <- c("owl", "cat", "pony", "cat")
 labelled_integer(x)
 
 y <- as.factor(x)
 labelled_integer(y)
 
-z <- rep(c(2, 7, 3), each = 2)
+z <- rep(c(22, 57, 13), times = 2)
 labelled_integer(z)
 }
 

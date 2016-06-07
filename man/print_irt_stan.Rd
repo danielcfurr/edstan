@@ -8,7 +8,7 @@ print_irt_stan(fit, data_list, probs = c(0.025, 0.25, 0.5, 0.75, 0.975),
   print_opts = list(digits = 3))
 }
 \arguments{
-\item{fit}{A \code{stanfit} object created by \code{\link{irt_stan}}.}
+\item{fit}{A \code{stanfit-class} object created by \code{\link{irt_stan}}.}
 
 \item{data_list}{A Stan data list created with \code{\link{irt_data}}.}
 
@@ -23,13 +23,13 @@ View a table of parameter posteriors after using \code{irt_stan}
 # Make a suitable data list:
 X <- spelling[, 2:5]
 W <- cbind(1, spelling[, 1])
-data_list <- irt_data(X, W = W)
+spelling_list <- irt_data(X, W = W)
 
 # Fit a latent regression  2PL
-twopl_fit <- irt_stan(data_list, model = "2pl_latent_reg.stan",
+twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
                       iter = 200, chains = 4)
 
 # Get a table of parameter posteriors
-print_irt_stan(twopl_fit, data_list)
+print_irt_stan(twopl_fit, spelling_list)
 }
 

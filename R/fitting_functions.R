@@ -1,10 +1,38 @@
-#' Create a Stan data list from an item response matrix or from long-form data
+#' Stan for item response theory
+#'
+#' \pkg{edstan} attempts to make easy the fitting of standard item response
+#' theory models using \pkg{rstan}.
+#'
+#' A user will generally want to use the following functions (in order) to fit
+#' a model:
+#'
+#' \enumerate{
+#'   \item \code{\link{irt_data}} to format the data,
+#'   \item \code{\link{irt_stan}} to fit a model, and
+#'   \item \code{\link{print_irt_stan}} to view some results.
+#' }
+#'
+#' Additionally, a fourth function, \code{\link{labelled_integer}}, is some
+#' times helpful for data formatting. The package also includes six Stan models
+#' (see \code{\link{irt_stan}} for a list) and two example datasets
+#' (\code{\link{aggression}} and \code{\link{spelling}}).
+#'
+#' It is expected that once a user is comfortable fitting pre-defined
+#' \pkg{edstan} models, they will write their own Stan models and fit them with
+#' \code{\link[rstan]{stan}}, for which \code{\link{irt_stan}} is a wrapper.
+"_PACKAGE"
+#> [1] "_PACKAGE"
+
+
+#' Create a Stan data list from an item response matrix or from long-form data.
 #'
 #' @param response_matrix An item response matrix.
-#'   Columns represent items, and rows represent persons.
+#'   Columns represent items and rows represent persons.
 #'   NA may be supplied for missing responses.
 #'   The lowest score for each item should be 0, with exception to rating scale
 #'   models.
+#'   \code{y}, \code{ii}, and \code{jj} should not be supplied if a response
+#'   matrix is given.
 #' @param y A vector of scored responses for long-form data.
 #'   The lowest score for each item should be 0, with exception to rating scale
 #'   models.
@@ -19,14 +47,32 @@
 #'   This must consist of consecutive integers starting at 1.
 #'   \code{\link{labelled_integer}} may be used to create a suitable vector.
 #'   Required if \code{response_matrix} is not supplied.
-#' @param W An optional matrix of person-covariates.
+#' @param W An optional matrix of person-covariates. If supplied, it must
+#'   contain one row per person and should usually include an intercept.
 #' @return A data list suitable for \code{\link{irt_stan}}.
-#' @seealso See \code{\link{irt_stan}} to fit a model to the data list.
+#' @seealso See \code{\link{labelled_integer}} for a means of creating
+#' appropriate inputs for \code{ii} and \code{jj}.
+#' See \code{\link{irt_stan}} to fit a model to the data list.
 #' @examples
-#' # If the data are in a response matrix ("wide-form"):
+#' # For a response matrix ("wide-form" data) with person covariates:
 #' X <- spelling[, 2:5]
-#' W <- spelling[, 1]
-#' data_list <- irt_data(X, W = W)
+#' W <- cbind(intercept = 1, spelling[, "male"])
+#' spelling_list <- irt_data(X, W = W)
+#'
+#' # If the data are in long-form:
+#' agg_list <- irt_data(y = aggression$poly,
+#'                      ii = aggression$item,
+#'                      jj = aggression$person)
+#'
+#' # Add a latent regression and use labelled_integer() with the items
+#' covars <- aggression[, c("person", "anger", "male")]
+#' covars <- unique(covars)
+#' covars <- covars[order(covars$person), ]
+#' W <- cbind(intercept = 1, covars[, -1])
+#' agg_list <- irt_data(y = aggression$dich,
+#'                      ii = labelled_integer(aggression$description),
+#'                      jj = aggression$person,
+#'                      W = W)
 #' @export
 irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
                      jj = integer(), W = matrix()) {
@@ -99,10 +145,10 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
   if(identical(W, matrix())) {
     W <- matrix(1, ncol = 1, nrow = max(jj))
   } else {
-    if(nrow(W) != max(jj)) {
+    if(nrow(as.matrix(W)) != max(jj)) {
       stop("W must have exactly one row per person.")
     }
-    if(sum(apply(W, 2, function(x) all(x == 1))) != 1) {
+    if(sum(apply(as.matrix(W), 2, function(x) all(x == 1))) != 1) {
       warning("In general one column of W should equal 1 to serve as a model intercept. Be sure you broke this rule on purpose.")
     }
   }
@@ -126,26 +172,64 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
 #' @param ... Additional options passed to \code{\link[rstan]{stan}}. The
 #'   usual choices are \code{iter} for the number of iterations and
 #'   \code{chains} for the number of chains.
-#' @return A \code{\link[rstan]{stanfit}} object.
-#' @seealso This function is a wrapper for \code{\link[rstan]{stan}}.
+#'
+#' @details
+#' The following table lists the models inlcuded in \pkg{edstan} along with the
+#' associated \emph{.stan} files. The file names are given as the \code{model}
+#' argument.
+#'
+#' \tabular{ll}{
+#'    \strong{Model}             \tab      \strong{File}           \cr
+#'    Rasch                      \tab \emph{rasch_latent_reg.stan} \cr
+#'    Partial credit             \tab \emph{pcm_latent_reg.stan}   \cr
+#'    Rating Scale               \tab \emph{rsm_latent_reg.stan}   \cr
+#'    Two-parameter logistic     \tab \emph{2pl_latent_reg.stan}   \cr
+#'    Generalized partial credit \tab \emph{gpcm_latent_reg.stan}  \cr
+#'    Generalized rating Scale   \tab \emph{grsm_latent_reg.stan}
+#' }
+#'
+#' @return A \code{\link[rstan]{stanfit-class}} object.
+#' @seealso See \code{\link[rstan]{stan}}, for which this function is a wrapper,
+#'   for additional options.
 #'   See \code{\link{irt_data}} and \code{\link{labelled_integer}} for functions
 #'   that facilitate creating a suitable \code{data_list}.
 #'   See \code{\link{print_irt_stan}} and \code{\link[rstan]{print}} for ways of
 #'   getting tables summarizing parameter posteriors.
 #' @examples
-#' # Make a suitable data list
-#' X <- spelling[, 2:5]
-#' W <- spelling[, 1]
-#' data_list <- irt_data(X, W = W)
-#'
 #' # List the Stan models included in edstan
 #' folder <- system.file("extdata", package = "edstan")
 #' dir(folder, "\\.stan$")
 #'
-#' # Fit a latent regression Rasch and 2PL
-#' rasch_fit <- irt_stan(data_list, iter = 200, chains = 4)
-#' twopl_fit <- irt_stan(data_list, model = "2pl_latent_reg.stan",
+#' # List the contents of one of the .stan files
+#' rasch_file <- system.file("extdata/rasch_latent_reg.stan",
+#'                           package = "edstan")
+#' cat(readLines(rasch_file), sep = "\n")
+#'
+#' # Fit the Rasch and 2PL models on wide-form data with a latent regression
+#' X <- spelling[, 2:5]
+#' W <- cbind(intercept = 1, spelling[, "male"])
+#' spelling_list <- irt_data(X, W = W)
+#' rasch_fit <- irt_stan(spelling_list, iter = 200, chains = 4)
+#' twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
 #'                       iter = 200, chains = 4)
+#'
+#' # Print a summary of the parameter posteriors
+#' print_irt_stan(rasch_fit, spelling_list)
+#' print_irt_stan(twopl_fit, spelling_list)
+#'
+#' # Fit the rating scale and generalized partial credit models to long-form
+#' # data without a latent regression
+#' agg_list <- irt_data(y = aggression$dich,
+#'                      ii = labelled_integer(aggression$description),
+#'                      jj = aggression$person)
+#' fit_rsm <- irt_stan(agg_list, model = "rsm_latent_reg.stan",
+#'                     iter = 300, chains = 4)
+#' fit_gpcm <- irt_stan(agg_list, model = "gpcm_latent_reg.stan",
+#'                      iter = 300, chains = 4)
+#'
+#' # Print a summary of the parameter posteriors
+#' print_irt_stan(fit_rsm, agg_list)
+#' print_irt_stan(fit_gpcm, agg_list)
 #' @export
 irt_stan <- function(data_list, model = "", ... ) {
 
@@ -179,7 +263,7 @@ irt_stan <- function(data_list, model = "", ... ) {
 
 #' Transform a vector into consecutive integers
 #'
-#' @param x A vector, which may be (for example) numeric, string, or factor.
+#' @param x A vector, which may be numeric, string, or factor.
 #' @return A vector of integers corresponding to entries in \code{x}.
 #'   The lowest value will be 1, and the greatest value will equal the number of
 #'   unique elements in \code{x}.
@@ -188,13 +272,13 @@ irt_stan <- function(data_list, model = "", ... ) {
 #'   The result is suitable for the \code{ii} and \code{jj} options for
 #'   \code{\link{irt_data}}.
 #' @examples
-#' x <- rep(c("AA", "BB", "CC"), each = 2)
+#' x <- c("owl", "cat", "pony", "cat")
 #' labelled_integer(x)
 #'
 #' y <- as.factor(x)
 #' labelled_integer(y)
 #'
-#' z <- rep(c(2, 7, 3), each = 2)
+#' z <- rep(c(22, 57, 13), times = 2)
 #' labelled_integer(z)
 #' @export
 labelled_integer <- function(x = vector()) {
@@ -209,7 +293,7 @@ labelled_integer <- function(x = vector()) {
 
 #' View a table of parameter posteriors after using \code{irt_stan}
 #'
-#' @param fit A \code{stanfit} object created by \code{\link{irt_stan}}.
+#' @param fit A \code{stanfit-class} object created by \code{\link{irt_stan}}.
 #' @param data_list A Stan data list created with \code{\link{irt_data}}.
 #' @param probs A vector of quantiles for summarizing parameter posteriors.
 #' @param print_opts Options passed to \code{\link[base]{print}} as a list.
@@ -217,14 +301,14 @@ labelled_integer <- function(x = vector()) {
 #' # Make a suitable data list:
 #' X <- spelling[, 2:5]
 #' W <- cbind(1, spelling[, 1])
-#' data_list <- irt_data(X, W = W)
+#' spelling_list <- irt_data(X, W = W)
 #'
 #' # Fit a latent regression  2PL
-#' twopl_fit <- irt_stan(data_list, model = "2pl_latent_reg.stan",
+#' twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
 #'                       iter = 200, chains = 4)
 #'
 #' # Get a table of parameter posteriors
-#' print_irt_stan(twopl_fit, data_list)
+#' print_irt_stan(twopl_fit, spelling_list)
 #' @export
 print_irt_stan <- function(fit, data_list, probs = c(.025, .25, .5, .75, .975),
                            print_opts = list(digits = 3)) {
@@ -285,4 +369,3 @@ print_irt_stan <- function(fit, data_list, probs = c(.025, .25, .5, .75, .975),
   }
 
 }
-

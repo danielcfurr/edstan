@@ -20,28 +20,65 @@ usual choices are \code{iter} for the number of iterations and
 \code{chains} for the number of chains.}
 }
 \value{
-A \code{\link[rstan]{stanfit}} object.
+A \code{\link[rstan]{stanfit-class}} object.
 }
 \description{
 Estimate an item response model with Stan
 }
-\examples{
-# Make a suitable data list
-X <- spelling[, 2:5]
-W <- spelling[, 1]
-data_list <- irt_data(X, W = W)
+\details{
+The following table lists the models inlcuded in \pkg{edstan} along with the
+associated \emph{.stan} files. The file names are given as the \code{model}
+argument.
 
+\tabular{ll}{
+   \strong{Model}             \tab      \strong{File}           \cr
+   Rasch                      \tab \emph{rasch_latent_reg.stan} \cr
+   Partial credit             \tab \emph{pcm_latent_reg.stan}   \cr
+   Rating Scale               \tab \emph{rsm_latent_reg.stan}   \cr
+   Two-parameter logistic     \tab \emph{2pl_latent_reg.stan}   \cr
+   Generalized partial credit \tab \emph{gpcm_latent_reg.stan}  \cr
+   Generalized rating Scale   \tab \emph{grsm_latent_reg.stan}
+}
+}
+\examples{
 # List the Stan models included in edstan
 folder <- system.file("extdata", package = "edstan")
 dir(folder, "\\\\.stan$")
 
-# Fit a latent regression Rasch and 2PL
-rasch_fit <- irt_stan(data_list, iter = 200, chains = 4)
-twopl_fit <- irt_stan(data_list, model = "2pl_latent_reg.stan",
+# List the contents of one of the .stan files
+rasch_file <- system.file("extdata/rasch_latent_reg.stan",
+                          package = "edstan")
+cat(readLines(rasch_file), sep = "\\n")
+
+# Fit the Rasch and 2PL models on wide-form data with a latent regression
+X <- spelling[, 2:5]
+W <- cbind(intercept = 1, spelling[, "male"])
+spelling_list <- irt_data(X, W = W)
+rasch_fit <- irt_stan(spelling_list, iter = 200, chains = 4)
+twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
                       iter = 200, chains = 4)
+
+# Print a summary of the parameter posteriors
+print_irt_stan(rasch_fit, spelling_list)
+print_irt_stan(twopl_fit, spelling_list)
+
+# Fit the rating scale and generalized partial credit models to long-form
+# data without a latent regression
+agg_list <- irt_data(y = aggression$dich,
+                     ii = labelled_integer(aggression$description),
+                     jj = aggression$person)
+fit_rsm <- irt_stan(agg_list, model = "rsm_latent_reg.stan",
+                    iter = 300, chains = 4)
+fit_gpcm <- irt_stan(agg_list, model = "gpcm_latent_reg.stan",
+                     iter = 300, chains = 4)
+
+# Print a summary of the parameter posteriors
+print_irt_stan(fit_rsm, agg_list)
+print_irt_stan(fit_gpcm, agg_list)
 }
 \seealso{
-This function is a wrapper for \code{\link[rstan]{stan}}.
+See \code{\link[rstan]{stan}}, for which this function is a wrapper,
+  for additional options.
   See \code{\link{irt_data}} and \code{\link{labelled_integer}} for functions
   that facilitate creating a suitable \code{data_list}.
   See \code{\link{print_irt_stan}} and \code{\link[rstan]{print}} for ways of

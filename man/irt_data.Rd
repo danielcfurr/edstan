@@ -2,17 +2,19 @@
 % Please edit documentation in R/fitting_functions.R
 \name{irt_data}
 \alias{irt_data}
-\title{Create a Stan data list from an item response matrix or from long-form data}
+\title{Create a Stan data list from an item response matrix or from long-form data.}
 \usage{
 irt_data(response_matrix = matrix(), y = integer(), ii = integer(),
   jj = integer(), W = matrix())
 }
 \arguments{
 \item{response_matrix}{An item response matrix.
-Columns represent items, and rows represent persons.
+Columns represent items and rows represent persons.
 NA may be supplied for missing responses.
 The lowest score for each item should be 0, with exception to rating scale
-models.}
+models.
+\code{y}, \code{ii}, and \code{jj} should not be supplied if a response
+matrix is given.}
 
 \item{y}{A vector of scored responses for long-form data.
 The lowest score for each item should be 0, with exception to rating scale
@@ -31,21 +33,39 @@ This must consist of consecutive integers starting at 1.
 \code{\link{labelled_integer}} may be used to create a suitable vector.
 Required if \code{response_matrix} is not supplied.}
 
-\item{W}{An optional matrix of person-covariates.}
+\item{W}{An optional matrix of person-covariates. If supplied, it must
+contain one row per person and should usually include an intercept.}
 }
 \value{
 A data list suitable for \code{\link{irt_stan}}.
 }
 \description{
-Create a Stan data list from an item response matrix or from long-form data
+Create a Stan data list from an item response matrix or from long-form data.
 }
 \examples{
-# If the data are in a response matrix ("wide-form"):
+# For a response matrix ("wide-form" data) with person covariates:
 X <- spelling[, 2:5]
-W <- spelling[, 1]
-data_list <- irt_data(X, W = W)
+W <- cbind(intercept = 1, spelling[, "male"])
+spelling_list <- irt_data(X, W = W)
+
+# If the data are in long-form:
+agg_list <- irt_data(y = aggression$poly,
+                     ii = aggression$item,
+                     jj = aggression$person)
+
+# Add a latent regression and use labelled_integer() with the items
+covars <- aggression[, c("person", "anger", "male")]
+covars <- unique(covars)
+covars <- covars[order(covars$person), ]
+W <- cbind(intercept = 1, covars[, -1])
+agg_list <- irt_data(y = aggression$dich,
+                     ii = labelled_integer(aggression$description),
+                     jj = aggression$person,
+                     W = W)
 }
 \seealso{
+See \code{\link{labelled_integer}} for a means of creating
+appropriate inputs for \code{ii} and \code{jj}.
 See \code{\link{irt_stan}} to fit a model to the data list.
 }
 
