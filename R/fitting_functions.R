@@ -219,7 +219,7 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
 #'
 #' # Fit the rating scale and generalized partial credit models to long-form
 #' # data without a latent regression
-#' agg_list <- irt_data(y = aggression$dich,
+#' agg_list <- irt_data(y = aggression$poly,
 #'                      ii = labelled_integer(aggression$description),
 #'                      jj = aggression$person)
 #' fit_rsm <- irt_stan(agg_list, model = "rsm_latent_reg.stan",

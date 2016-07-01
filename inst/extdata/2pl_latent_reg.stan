@@ -16,13 +16,13 @@ parameters {
 }
 transformed parameters {
   vector[I] beta;
-  beta <- append_row(beta_free, rep_vector(-1*sum(beta_free), 1));
+  beta = append_row(beta_free, rep_vector(-1*sum(beta_free), 1));
 }
 model {
   vector[J] mu;
-  mu <- W*lambda;
-  alpha ~ lognormal(1, 1);
-  beta_free ~ normal(0, 5);
-  theta ~ normal(0, 1);
-  y ~ bernoulli_logit(alpha[ii].*(theta[jj] + mu[jj] - beta[ii]));
+  mu = W*lambda;
+  target += lognormal_lpdf(alpha | 1, 1);
+  target += normal_lpdf(beta_free | 0, 5);
+  target += normal_lpdf(theta |W*lambda, 1);
+  target += bernoulli_logit_lpmf(y | theta[jj] - beta[ii]);
 }

@@ -21,10 +21,10 @@ a model:
 
 Additionally, a fourth function, \code{\link{labelled_integer}}, is some
 times helpful for data formatting. The package also includes six Stan models
-(see \code{\link{irt_stan}} for a list) and two example datasets (see
-\code{\link{aggression}} and \code{\link{spelling}}).
+(see \code{\link{irt_stan}} for a list) and two example datasets
+(\code{\link{aggression}} and \code{\link{spelling}}).
 
-It is expected that once a user is comfortable fitting the pre-defined
+It is expected that once a user is comfortable fitting pre-defined
 \pkg{edstan} models, they will write their own Stan models and fit them with
 \code{\link[rstan]{stan}}, for which \code{\link{irt_stan}} is a wrapper.
 }

@@ -1,10 +1,10 @@
 functions {
-  vector grsm_probs(real theta, real mu, real alpha, real beta, vector kappa) {
+  real grsm(int r, real theta, real mu, real alpha, real beta, vector kappa) {
     vector[rows(kappa) + 1] unsummed;
     vector[rows(kappa) + 1] probs;
-    unsummed <- append_row(rep_vector(0, 1), alpha*(theta + mu - beta - kappa));
-    probs <- softmax(cumulative_sum(unsummed));
-    return probs;
+    unsummed = append_row(rep_vector(0, 1), alpha*(theta + mu - beta - kappa));
+    probs = softmax(cumulative_sum(unsummed));
+    return categorical_lpmf(r | probs);
   }
 }
 data {
@@ -20,9 +20,9 @@ data {
 transformed data {
   int r[N];                      // modified response; r in {1 ... m_i + 1}
   int m;                         // # steps
-  m <- max(y);
+  m = max(y);
   for(n in 1:N)
-    r[n] <- y[n] + 1;
+    r[n] = y[n] + 1;
 }
 parameters {
   vector<lower=0>[I] alpha;
@@ -34,17 +34,17 @@ parameters {
 transformed parameters {
   vector[I] beta;
   vector[m] kappa;
-  beta <- append_row(beta_free, rep_vector(-1*sum(beta_free), 1));
-  kappa <- append_row(kappa_free, rep_vector(-1*sum(kappa_free), 1));
+  beta = append_row(beta_free, rep_vector(-1*sum(beta_free), 1));
+  kappa = append_row(kappa_free, rep_vector(-1*sum(kappa_free), 1));
 }
 model {
   vector[J] mu;
-  mu <- W*lambda;
-  theta ~ normal(0, 1);
-  alpha ~ lognormal(1, 1);
-  beta_free ~ normal(0, 5);
-  kappa_free ~ normal(0, 5);
+  mu = W*lambda;
+  target += lognormal_lpdf(alpha | 1, 1);
+  target += normal_lpdf(beta_free | 0, 5);
+  target += normal_lpdf(kappa_free | 0, 5);
+  target += normal_lpdf(theta | 0, 1);
   for (n in 1:N)
-    r[n] ~ categorical(grsm_probs(theta[jj[n]], mu[jj[n]], alpha[ii[n]],
-                                  beta[ii[n]], kappa));
+    target += grsm(r[n], theta[jj[n]], mu[jj[n]], alpha[ii[n]],
+                   beta[ii[n]], kappa);
 }
