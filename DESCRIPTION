@@ -1,8 +1,8 @@
 Package: edstan
 Type: Package
 Title: Stan for item response theory
-Version: 0.205
-Date: 2016-06-30
+Version: 0.207
+Date: 2016-07-06
 Author: Daniel C. Furr
 Maintainer: Daniel C. Furr <danielcfurr@berkeley.edu>
 Description: Assists in fitting several item response models using rstan.

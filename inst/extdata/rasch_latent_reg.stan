@@ -16,11 +16,11 @@ parameters {
 }
 transformed parameters {
   vector[I] beta;
-  beta =- append_row(beta_free, rep_vector(-1*sum(beta_free), 1));
+  beta = append_row(beta_free, rep_vector(-1*sum(beta_free), 1));
 }
 model {
   target += normal_lpdf(beta_free | 0, 5);
-  target += normal_lpdf(theta |W*lambda, 1);
+  target += normal_lpdf(theta |W*lambda, sigma);
   target += exponential_lpdf(sigma | .1);
   target += bernoulli_logit_lpmf(y | theta[jj] - beta[ii]);
 }
