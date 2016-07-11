@@ -24,5 +24,6 @@ model {
   target += lognormal_lpdf(alpha | 1, 1);
   target += normal_lpdf(beta_free | 0, 5);
   target += normal_lpdf(theta | 0, 1);
-  target += bernoulli_logit_lpmf(y | theta[jj] + mu[jj] - beta[ii]);
+  target += bernoulli_logit_lpmf(y |
+              alpha[ii].*(theta[jj] + mu[jj] - beta[ii]));
 }
