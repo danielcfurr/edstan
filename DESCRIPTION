@@ -1,7 +1,7 @@
 Package: edstan
 Type: Package
-Title: Stan models for item response theory
-Version: 0.208
+Title: Stan Models for Item Response Theory
+Version: 0.209
 Date: 2016-08-04
 Author: Daniel C. Furr
 Maintainer: Daniel C. Furr <danielcfurr@berkeley.edu>
