@@ -1,12 +1,21 @@
 Package: edstan
 Type: Package
+<<<<<<< HEAD
+Title: Stan models for item response theory
+Version: 0.208
+Date: 2016-08-04
+=======
 Title: Stan for item response theory
 Version: 0.208
 Date: 2016-07-06
+>>>>>>> origin/master
 Author: Daniel C. Furr
 Maintainer: Daniel C. Furr <danielcfurr@berkeley.edu>
-Description: Assists in fitting several item response models using rstan.
-License: BSD 3-clause license
-Depends: rstan (>= 2.10.0)
+Description: Provides convenience functions and pre-programmed Stan models
+    related to item response theory. Its purpose is to make fitting
+    common item response theory models using Stan easy.
+License: BSD_3_clause + file LICENSE
+Depends: R (>= 3.0.2)
+Imports: rstan (>= 2.10)
 LazyData: true
 RoxygenNote: 5.0.1

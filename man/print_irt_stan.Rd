@@ -25,11 +25,13 @@ X <- spelling[, 2:5]
 W <- cbind(1, spelling[, 1])
 spelling_list <- irt_data(X, W = W)
 
+\dontrun{
 # Fit a latent regression  2PL
 twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
                       iter = 200, chains = 4)
 
 # Get a table of parameter posteriors
 print_irt_stan(twopl_fit, spelling_list)
+}
 }
 

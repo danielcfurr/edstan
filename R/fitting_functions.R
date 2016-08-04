@@ -193,7 +193,7 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
 #'   for additional options.
 #'   See \code{\link{irt_data}} and \code{\link{labelled_integer}} for functions
 #'   that facilitate creating a suitable \code{data_list}.
-#'   See \code{\link{print_irt_stan}} and \code{\link[rstan]{print}} for ways of
+#'   See \code{\link{print_irt_stan}} and \code{\link[rstan]{print.stanfit}} for ways of
 #'   getting tables summarizing parameter posteriors.
 #' @examples
 #' # List the Stan models included in edstan
@@ -205,6 +205,7 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
 #'                           package = "edstan")
 #' cat(readLines(rasch_file), sep = "\n")
 #'
+#'\dontrun{
 #' # Fit the Rasch and 2PL models on wide-form data with a latent regression
 #' X <- spelling[, 2:5]
 #' W <- cbind(intercept = 1, spelling[, "male"])
@@ -230,6 +231,7 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
 #' # Print a summary of the parameter posteriors
 #' print_irt_stan(fit_rsm, agg_list)
 #' print_irt_stan(fit_gpcm, agg_list)
+#' }
 #' @export
 irt_stan <- function(data_list, model = "", ... ) {
 
@@ -255,7 +257,7 @@ irt_stan <- function(data_list, model = "", ... ) {
   }
 
   message("Using ", file.path(stan_file), ".")
-  fit <- stan(stan_file, data = data_list, ...)
+  fit <- rstan::stan(stan_file, data = data_list, ...)
   return(fit)
 
 }
@@ -303,12 +305,14 @@ labelled_integer <- function(x = vector()) {
 #' W <- cbind(1, spelling[, 1])
 #' spelling_list <- irt_data(X, W = W)
 #'
+#'\dontrun{
 #' # Fit a latent regression  2PL
 #' twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
 #'                       iter = 200, chains = 4)
 #'
 #' # Get a table of parameter posteriors
 #' print_irt_stan(twopl_fit, spelling_list)
+#' }
 #' @export
 print_irt_stan <- function(fit, data_list, probs = c(.025, .25, .5, .75, .975),
                            print_opts = list(digits = 3)) {
