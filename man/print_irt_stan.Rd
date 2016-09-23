@@ -21,9 +21,9 @@ View a table of parameter posteriors after using \code{irt_stan}
 }
 \examples{
 # Make a suitable data list:
-X <- spelling[, 2:5]
-W <- cbind(1, spelling[, 1])
-spelling_list <- irt_data(X, W = W)
+spelling_list <- irt_data(response_matrix = spelling[, 2:5],
+                          covariates = spelling[, "male", drop = FALSE],
+                          formula = ~ 1 + male)
 
 \dontrun{
 # Fit a latent regression  2PL

@@ -5,7 +5,7 @@
 \title{Create a Stan data list from an item response matrix or from long-form data.}
 \usage{
 irt_data(response_matrix = matrix(), y = integer(), ii = integer(),
-  jj = integer(), W = matrix())
+  jj = integer(), covariates = data.frame(), formula = ~1)
 }
 \arguments{
 \item{response_matrix}{An item response matrix.
@@ -33,8 +33,21 @@ This must consist of consecutive integers starting at 1.
 \code{\link{labelled_integer}} may be used to create a suitable vector.
 Required if \code{response_matrix} is not supplied.}
 
-\item{W}{An optional matrix of person-covariates. If supplied, it must
-contain one row per person and should usually include an intercept.}
+\item{covariates}{An optional data frame containing (only) person-covariates.
+It must contain one row per person or be of the same length as \code{y},
+\code{ii}, and \code{jj}. If it contains one row per person, it must be in
+the same order as the response matrix (or \code{unique(jj)}). If it has a
+number of columns equal to the length of \code{y},
+\code{ii}, and \code{jj}, it must be in the same order as \code{jj} (for
+example, it may be a subset of columns from the same data frame that contains
+\code{y}, \code{ii}, and \code{jj}).}
+
+\item{formula}{An optional formula for the latent regression that is applied
+to \code{covariates}. The left side  should be blank (for example,
+\code{~ v1 + v2}). By default it includes only a model intercept,
+interpretable as the mean of the person distribution. If set to
+\code{NULL}, then \code{covariates} is used directly  as the design matrix
+for the latent regression.}
 }
 \value{
 A data list suitable for \code{\link{irt_stan}}.
@@ -44,24 +57,27 @@ Create a Stan data list from an item response matrix or from long-form data.
 }
 \examples{
 # For a response matrix ("wide-form" data) with person covariates:
-X <- spelling[, 2:5]
-W <- cbind(intercept = 1, spelling[, "male"])
-spelling_list <- irt_data(X, W = W)
+spelling_list <- irt_data(response_matrix = spelling[, 2:5],
+                          covariates = spelling[, "male", drop = FALSE],
+                          formula = ~ 1 + male)
 
-# If the data are in long-form:
-agg_list <- irt_data(y = aggression$poly,
-                     ii = aggression$item,
-                     jj = aggression$person)
+# Alternatively, the same may be created by:
+W <- cbind(intercept = 1, spelling[, "male"])
+spelling_list <- irt_data(response_matrix = spelling[, 2:5],
+                          covariates = W,
+                          formula = NULL)
+
+# For long-form data (one row per item-person pair):
+agg_list_1 <- irt_data(y = aggression$poly,
+                       ii = aggression$item,
+                       jj = aggression$person)
 
 # Add a latent regression and use labelled_integer() with the items
-covars <- aggression[, c("person", "anger", "male")]
-covars <- unique(covars)
-covars <- covars[order(covars$person), ]
-W <- cbind(intercept = 1, covars[, -1])
-agg_list <- irt_data(y = aggression$dich,
-                     ii = labelled_integer(aggression$description),
-                     jj = aggression$person,
-                     W = W)
+agg_list_2 <- irt_data(y = aggression$dich,
+                       ii = labelled_integer(aggression$description),
+                       jj = aggression$person,
+                       covariates = aggression[, c("male", "anger")],
+                       formula = ~ 1 + male*anger)
 }
 \seealso{
 See \code{\link{labelled_integer}} for a means of creating

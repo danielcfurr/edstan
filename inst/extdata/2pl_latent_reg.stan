@@ -11,19 +11,18 @@ data {
 parameters {
   vector<lower=0>[I] alpha;
   vector[I-1] beta_free;
-  vector[J] theta;
+  vector[J] theta_resid;
   vector[K] lambda;
 }
 transformed parameters {
   vector[I] beta;
+  vector[J] theta;
   beta = append_row(beta_free, rep_vector(-1*sum(beta_free), 1));
+  theta = W*lambda + theta_resid;
 }
 model {
-  vector[J] mu;
-  mu = W*lambda;
-  target += lognormal_lpdf(alpha | 1, 1);
-  target += normal_lpdf(beta_free | 0, 5);
-  target += normal_lpdf(theta | 0, 1);
-  target += bernoulli_logit_lpmf(y |
-              alpha[ii].*(theta[jj] + mu[jj] - beta[ii]));
+  alpha ~ lognormal(1, 1);
+  beta_free ~ normal(0, 5);
+  theta_resid ~ normal(0, 1);
+  y ~ bernoulli_logit(alpha[ii].*(theta[jj] - beta[ii]));
 }

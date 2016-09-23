@@ -19,8 +19,9 @@ a model:
   \item \code{\link{print_irt_stan}} to view some results.
 }
 
-Additionally, a fourth function, \code{\link{labelled_integer}}, is some
-times helpful for data formatting. The package also includes six Stan models
+Additionally, \code{\link{labelled_integer}} is some times helpful for data
+formatting and \code{\link{rhat_columns}} creates a plot of convergence
+statistics by parameter vector. The package also includes six Stan models
 (see \code{\link{irt_stan}} for a list) and two example datasets
 (\code{\link{aggression}} and \code{\link{spelling}}).
 

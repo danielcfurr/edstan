@@ -10,17 +10,19 @@ data {
 }
 parameters {
   vector[I-1] beta_free;
-  vector[J] theta;
+  vector[J] theta_resid;
   real<lower=0> sigma;
   vector[K] lambda;
 }
 transformed parameters {
   vector[I] beta;
+  vector[J] theta;
   beta = append_row(beta_free, rep_vector(-1*sum(beta_free), 1));
+  theta = W*lambda + theta_resid * sigma;
 }
 model {
-  target += normal_lpdf(beta_free | 0, 5);
-  target += normal_lpdf(theta |W*lambda, sigma);
-  target += exponential_lpdf(sigma | .1);
-  target += bernoulli_logit_lpmf(y | theta[jj] - beta[ii]);
+  beta_free ~ normal(0, 5);
+  theta_resid ~ normal(0, 1);
+  sigma ~ exponential(.1);
+  y ~ bernoulli_logit(theta[jj] - beta[ii]);
 }

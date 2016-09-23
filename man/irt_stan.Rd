@@ -52,9 +52,9 @@ cat(readLines(rasch_file), sep = "\\n")
 
 \dontrun{
 # Fit the Rasch and 2PL models on wide-form data with a latent regression
-X <- spelling[, 2:5]
-W <- cbind(intercept = 1, spelling[, "male"])
-spelling_list <- irt_data(X, W = W)
+spelling_list <- irt_data(response_matrix = spelling[, 2:5],
+                          covariates = spelling[, "male", drop = FALSE],
+                          formula = ~ 1 + male)
 rasch_fit <- irt_stan(spelling_list, iter = 200, chains = 4)
 twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
                       iter = 200, chains = 4)
@@ -66,7 +66,7 @@ print_irt_stan(twopl_fit, spelling_list)
 # Fit the rating scale and generalized partial credit models to long-form
 # data without a latent regression
 agg_list <- irt_data(y = aggression$poly,
-                     ii = labelled_integer(aggression$description),
+                     ii = aggression$item,
                      jj = aggression$person)
 fit_rsm <- irt_stan(agg_list, model = "rsm_latent_reg.stan",
                     iter = 300, chains = 4)
