@@ -13,9 +13,9 @@
 #' }
 #'
 #' Additionally, \code{\link{labelled_integer}} is some times helpful for data
-#' formatting and \code{\link{rhat_columns}} creates a plot of convergence
-#' statistics by parameter vector. The package also includes six Stan models
-#' (see \code{\link{irt_stan}} for a list) and two example datasets
+#' formatting and \code{\link{stan_columns_plot}} creates a plots of convergence
+#' and other statistics by parameter vector. The package also includes six Stan
+#' models (see \code{\link{irt_stan}} for a list) and two example datasets
 #' (\code{\link{aggression}} and \code{\link{spelling}}).
 #'
 #' It is expected that once a user is comfortable fitting pre-defined
@@ -413,10 +413,13 @@ print_irt_stan <- function(fit, data_list, probs = c(.025, .25, .5, .75, .975),
 }
 
 
-#' View a plot of Rhat statistics after using \code{irt_stan}
+#' View a plot of summary statistics after using \code{irt_stan}
 #'
 #' @param fit A \code{stanfit-class} object created by \code{\link{irt_stan}}
 #'   or \code{\link[rstan]{stan}}.
+#' @param stat A string for the statistic from the \code{summary} method for a
+#'   \code{stanfit} object to plot. The default is "Rhat" but could, for
+#'   example, be "mean" or "n_eff".
 #' @param ... Additional options (such as \code{pars} or \code{use_cache}),
 #'   passed to the \code{summary} method for a \code{stanfit} object. Not
 #'   required.
@@ -438,11 +441,12 @@ print_irt_stan <- function(fit, data_list, probs = c(.025, .25, .5, .75, .975),
 #' rhat_columns(twopl_fit)
 #' }
 #' @export
-rhat_columns <- function(fit, ...) {
+stan_columns_plot <- function(fit, stat = "Rhat", ...) {
   fit_summary <- as.data.frame(rstan::summary(fit, ...)[["summary"]])
   fit_summary$Parameter <- as.factor(gsub("\\[.*]", "", rownames(fit_summary)))
+  fit_summary$value_to_plot <- fit_summary[, stat]
   ggplot2::ggplot(fit_summary) +
-    ggplot2::aes(x = Parameter, y = Rhat, color = Parameter) +
+    ggplot2::aes(x = Parameter, y = value_to_plot, color = Parameter) +
     ggplot2::geom_jitter(height = 0, width = 0.5, show.legend = FALSE) +
-    ggplot2::ylab(expression(hat(italic(R))))
+    ggplot2::ylab(stat)
 }
