@@ -166,29 +166,25 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
             "be okay for rating scale models.")
   }
 
-  # Check and modify covariates data frame
-  if(!is.data.frame(covariates)) {
-    warning("Converting 'covariates' to a data frame. If an error occurs, ",
-            "convert the argument passed to 'covariates' to a data frame.")
-  }
-  covariates <- as.data.frame(covariates)
-  if(identical(covariates, data.frame())) {
-    covariates <- data.frame(intercept = rep(1, times = max(jj)))
-  } else if(nrow(covariates) == length(jj)) {
-    covariates_with_id <- unique(cbind(jj, covariates))
-    covariates <- covariates_with_id[sort(unique(c(jj))), -1, drop = FALSE]
-  } else if(nrow(covariates) != max(jj)) {
-    stop("The 'covariates' must have a number of rows equal to the ",
-         "number of persons or to the length of 'jj'. If 'covariates' has ",
-         "multiple rows per person (as with long-form data), all of them must ",
-         "be identical.")
-  }
-
-  # Apply formula if not NULL
+  # If 'formula' set to NULL, use 'covariates' as is. If 'covariates' not
+  # provided, set to be constant only. Otherwise, if nrow(covariates) equals
+  # number of persons, apply formula to it. Or if nrow(covariates) equals
+  # number of total responses, shorten it and then apply formula.
   if(is.null(formula)) {
     W <- covariates
+  } else if(identical(covariates, data.frame())) {
+    W <- matrix(1, ncol = 1, nrow = max(jj))
   } else {
-    W <- model.matrix(formula, covariates)
+    if(nrow(covariates) == max(jj)) {
+      W <- model.matrix(formula, covariates)
+    } else if(nrow(covariates) == length(jj)) {
+      W <- model.matrix(formula, covariates[!duplicated(jj),])
+    } else {
+      stop("The 'covariates' must have a number of rows equal to the ",
+           "number of persons or to the length of 'jj'. If 'covariates' has ",
+           "multiple rows per person (as with long-form data), all of them ",
+           "must be identical.")
+    }
   }
 
   data_list <- list(N = length(y), I = max(ii), J = max(jj), ii = ii, jj = jj,
