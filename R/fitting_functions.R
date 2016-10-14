@@ -84,7 +84,7 @@
 #'                        jj = aggression$person)
 #'
 #' # Add a latent regression and use labelled_integer() with the items
-#' agg_list_2 <- irt_data(y = aggression$dich,
+#' agg_list_2 <- irt_data(y = aggression$poly,
 #'                        ii = labelled_integer(aggression$description),
 #'                        jj = aggression$person,
 #'                        covariates = aggression[, c("male", "anger")],
@@ -113,7 +113,7 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
     # Assemble jj into a vector of non-missing values
     jj_unique <- 1:nrow(response_matrix)
     names(jj_unique) <- rownames(response_matrix)
-    jj_expand <- rep(jj_unique, times = ncol(response_matrix))
+    jj_expand <- rep(jj_unique, each = ncol(response_matrix))
     jj <- jj_expand[not_missing]
 
 
@@ -213,7 +213,7 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
 #' argument.
 #'
 #' \tabular{ll}{
-#'    \strong{Model}             \tab      \strong{File}           \cr
+#'    \strong{Model}             \tab \strong{File}                \cr
 #'    Rasch                      \tab \emph{rasch_latent_reg.stan} \cr
 #'    Partial credit             \tab \emph{pcm_latent_reg.stan}   \cr
 #'    Rating Scale               \tab \emph{rsm_latent_reg.stan}   \cr
@@ -221,6 +221,15 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
 #'    Generalized partial credit \tab \emph{gpcm_latent_reg.stan}  \cr
 #'    Generalized rating Scale   \tab \emph{grsm_latent_reg.stan}
 #' }
+#'
+#' Three simplified models are also available: \emph{rasch_simple.stan},
+#' \emph{pcm_simple.stan}, \emph{rsm_simple.stan}. These are (respectively) the
+#' Rasch, partial credit, and rating scale models omitting the latent
+#' regression. There is no reason to use these instead of the models listed
+#' above, given that the above models allow for rather than require the
+#' inclusion of covariates for a latent regression. Instead, the purpose of
+#' the simplified models is to provide a straightforward starting point
+#' researchers who wish to craft their own Stan models.
 #'
 #' @return A \code{\link[rstan]{stanfit-class}} object.
 #' @seealso See \code{\link[rstan]{stan}}, for which this function is a wrapper,
@@ -241,30 +250,50 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
 #'
 #'\dontrun{
 #' # Fit the Rasch and 2PL models on wide-form data with a latent regression
+#'
 #' spelling_list <- irt_data(response_matrix = spelling[, 2:5],
 #'                           covariates = spelling[, "male", drop = FALSE],
 #'                           formula = ~ 1 + male)
-#' rasch_fit <- irt_stan(spelling_list, iter = 200, chains = 4)
-#' twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
-#'                       iter = 200, chains = 4)
 #'
-#' # Print a summary of the parameter posteriors
+#' rasch_fit <- irt_stan(spelling_list, iter = 300, chains = 4)
 #' print_irt_stan(rasch_fit, spelling_list)
+#'
+#' twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
+#'                       iter = 300, chains = 4)
 #' print_irt_stan(twopl_fit, spelling_list)
 #'
-#' # Fit the rating scale and generalized partial credit models to long-form
-#' # data without a latent regression
-#' agg_list <- irt_data(y = aggression$poly,
-#'                      ii = aggression$item,
-#'                      jj = aggression$person)
-#' fit_rsm <- irt_stan(agg_list, model = "rsm_latent_reg.stan",
-#'                     iter = 300, chains = 4)
-#' fit_gpcm <- irt_stan(agg_list, model = "gpcm_latent_reg.stan",
-#'                      iter = 300, chains = 4)
 #'
-#' # Print a summary of the parameter posteriors
-#' print_irt_stan(fit_rsm, agg_list)
-#' print_irt_stan(fit_gpcm, agg_list)
+#' # Fit the rating scale and partial credit models without a latent regression
+#'
+#' agg_list_1 <- irt_data(y = aggression$poly,
+#'                        ii = labelled_integer(aggression$description),
+#'                        jj = aggression$person)
+#'
+#' fit_rsm <- irt_stan(agg_list_1, model = "rsm_latent_reg.stan",
+#'                     iter = 300, chains = 4)
+#' print_irt_stan(fit_rsm, agg_list_1)
+#'
+#' fit_pcm <- irt_stan(agg_list_1, model = "pcm_latent_reg.stan",
+#'                     iter = 300, chains = 4)
+#' print_irt_stan(fit_gpcm, agg_list_1)
+#'
+#'
+#' # Fit the generalized rating scale and partial credit models including
+#' # a latent regression
+#'
+#' agg_list_2 <- irt_data(y = aggression$poly,
+#'                        ii = labelled_integer(aggression$description),
+#'                        jj = aggression$person,
+#'                        covariates = aggression[, c("male", "anger")],
+#'                        formula = ~ 1 + male*anger)
+#'
+#' fit_grsm <- irt_stan(agg_list_2, model = "grsm_latent_reg.stan",
+#'                      iter = 300, chains = 4)
+#' print_irt_stan(fit_grsm, agg_list_2)
+#'
+#' fit_gpcm <- irt_stan(agg_list_2, model = "gpcm_latent_reg.stan",
+#'                      iter = 300, chains = 4)
+#' print_irt_stan(fit_grsm, agg_list_2)
 #' }
 #' @export
 irt_stan <- function(data_list, model = "", ... ) {
@@ -327,12 +356,15 @@ labelled_integer <- function(x = vector()) {
 }
 
 
-#' View a table of parameter posteriors after using \code{irt_stan}
+#' View a table of selected parameter posteriors after using \code{irt_stan}
 #'
 #' @param fit A \code{stanfit-class} object created by \code{\link{irt_stan}}.
-#' @param data_list A Stan data list created with \code{\link{irt_data}}.
-#' @param probs A vector of quantiles for summarizing parameter posteriors.
-#' @param print_opts Options passed to \code{\link[base]{print}} as a list.
+#' @param data_list An optional Stan data list created with
+#'   \code{\link{irt_data}}. If provided, the printed posterior summaries for
+#'   selected parameters are grouped by item. Otherwise, ungrouped results are
+#'   provided, which may be preferred, for example, for the Rasch or rating
+#'   scale models.
+#' @param ... Additional options passed to \code{\link[base]{print}}.
 #' @examples
 #' # Make a suitable data list:
 #' spelling_list <- irt_data(response_matrix = spelling[, 2:5],
@@ -342,69 +374,82 @@ labelled_integer <- function(x = vector()) {
 #'\dontrun{
 #' # Fit a latent regression  2PL
 #' twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
-#'                       iter = 200, chains = 4)
+#'                       iter = 300, chains = 4)
 #'
 #' # Get a table of parameter posteriors
 #' print_irt_stan(twopl_fit, spelling_list)
+#' # Or
+#' print_irt_stan(twopl_fit)
 #' }
 #' @export
-print_irt_stan <- function(fit, data_list, probs = c(.025, .25, .5, .75, .975),
-                           print_opts = list(digits = 3)) {
+print_irt_stan <- function(fit, data_list = NULL, ...) {
 
   possible_pars <- c("alpha", "beta", "kappa", "lambda", "sigma")
-  available = possible_pars %in% fit@model_pars
+  available <- possible_pars %in% fit@model_pars
   names(available) <- possible_pars
 
-  # Get number of beta parameters per item
-  y <- data_list$y
-  ii <- data_list$ii
-  if(available["kappa"]) {
-    m <- rep(1, times = max(ii))  # For rating scale models
-  } else {
-    m <- tapply(y, ii, max)       # For binary/partial credit models
-  }
+  if(is.null(data_list)) {
 
-  # Prep item subtables
-  out_list <- list(paste0("beta[", 1:m[1], "]"))
-  for(i in 2:max(ii)) {
-    out_list[[i]] <- paste0("beta[", (sum(m[1:(i-1)])+1):sum(m[1:i]), "]")
-  }
-  if(available["alpha"]) {
-    for(i in 1:max(ii)) {
-      out_list[[i]] <- c(paste0("alpha[", i, "]"), out_list[[i]])
+    capture <- capture.output(print(fit, pars = possible_pars[available], ...))
+
+  } else {
+
+    # Get number of beta parameters per item
+    y <- data_list$y
+    ii <- data_list$ii
+    if(available["kappa"]) {
+      m <- rep(1, times = max(ii))  # For rating scale models
+    } else {
+      m <- tapply(y, ii, max)       # For binary/partial credit models
     }
+
+    # Make a list of groups of item parameter by item
+    out_list <- list(paste0("beta[", 1:m[1], "]"))
+    for(i in 2:max(ii)) {
+      out_list[[i]] <- paste0("beta[", (sum(m[1:(i-1)])+1):sum(m[1:i]), "]")
+    }
+    if(available["alpha"]) {
+      for(i in 1:max(ii)) {
+        out_list[[i]] <- c(paste0("alpha[", i, "]"), out_list[[i]])
+      }
+    }
+
+    # Make labels for the items
+    if(is.null(names(data_list$ii))) {
+      out_labels <- paste("Item", unique(data_list$ii))
+    } else {
+      out_labels <- paste0("Item ", unique(data_list$ii), ": ",
+                           unique(names(data_list$ii)))
+    }
+
+    # Add kappas to the list and add a label, if needed
+    if(available["kappa"]) {
+      out_list[[length(out_list) + 1]] <- "kappa"
+      out_labels[length(out_labels) + 1] <- "Rating scale step parameters"
+    }
+
+    # Add ability distribution parameters to the list and add a label
+    if(available["sigma"]) {
+      out_list[[length(out_list) + 1]] <- c("lambda", "sigma")
+    } else {
+      out_list[[length(out_list) + 1]] <- "lambda"
+    }
+    out_labels[length(out_labels) + 1] <- "Ability distribution"
+
+    # Get print() output and reformat
+    capture <- capture.output(print(fit, pars = unlist(out_list), ...))
+    blanks <- grep("^$", capture)
+    capture[blanks[1]:blanks[2]] <- paste0("  ", capture[blanks[1]:blanks[2]])
+    for(i in 1:length(out_list)) {
+      search_str <- gsub("\\[", "\\\\[", out_list[[i]][1])
+      idx <- min(grep(paste0("^  ", search_str), capture))
+      capture <- c(capture[1:(idx-1)], out_labels[i],
+                   capture[idx:length(capture)])
+    }
+
   }
 
-  # Prep item subtable labels
-  if(is.null(names(data_list$ii))) {
-    out_labels <- paste("Item", unique(data_list$ii))
-  } else {
-    out_labels <- paste0("Item ", unique(data_list$ii), ": ",
-                         unique(names(data_list$ii)))
-  }
-
-  # Prep kappa subtable and label
-  if(available["kappa"]) {
-    out_list[[length(out_list) + 1]] <- "kappa"
-    out_labels[length(out_labels) + 1] <- "Rating scale step parameters"
-  }
-
-  # Prep ability subtable and label
-  if(available["sigma"]) {
-    out_list[[length(out_list) + 1]] <- c("lambda", "sigma")
-  } else {
-    out_list[[length(out_list) + 1]] <- "lambda"
-  }
-  out_labels[length(out_labels) + 1] <- "Ability distribution"
-
-  # Print all the subtables
-  for(i in 1:length(out_list)) {
-    cat(out_labels[i], "\n")
-    summary_to_print <- rstan::summary(fit, pars = out_list[[i]],
-                                       probs = probs)[[1]]
-    do.call(print, c(list(summary_to_print), print_opts))
-    cat("\n")
-  }
+  cat(capture, sep = "\n")
 
 }
 
@@ -431,10 +476,13 @@ print_irt_stan <- function(fit, data_list, probs = c(.025, .25, .5, .75, .975),
 #'\dontrun{
 #' # Fit a latent regression  2PL
 #' twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
-#'                       iter = 200, chains = 4)
+#'                       iter = 300, chains = 4)
 #'
-#' # Get a plot of Rhat statistics
+#' # Get a plot showing Rhat statistics
 #' rhat_columns(twopl_fit)
+#'
+#' # Get a plot showing number of effective draws
+#' rhat_columns(twopl_fit, stat = "n_eff")
 #' }
 #' @export
 stan_columns_plot <- function(fit, stat = "Rhat", ...) {

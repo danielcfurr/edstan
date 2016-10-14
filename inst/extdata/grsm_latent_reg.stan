@@ -1,8 +1,8 @@
 functions {
-  real grsm(int r, real theta, real mu, real alpha, real beta, vector kappa) {
+  real rsm(int r, real theta, real beta, vector kappa) {
     vector[rows(kappa) + 1] unsummed;
     vector[rows(kappa) + 1] probs;
-    unsummed = append_row(rep_vector(0, 1), alpha*(theta + mu - beta - kappa));
+    unsummed = append_row(rep_vector(0, 1), theta - beta - kappa);
     probs = softmax(cumulative_sum(unsummed));
     return categorical_lpmf(r | probs);
   }
@@ -20,16 +20,45 @@ data {
 transformed data {
   int r[N];                      // modified response; r in {1 ... m_i + 1}
   int m;                         // # steps
+  vector[K] center;              // values used to center covariates
+  vector[K] spread;              // values used to scale covariates
+  matrix[J,K] W_adj;             // centered and scaled covariates
+
   m = max(y);
   for(n in 1:N)
     r[n] = y[n] + 1;
+
+  {
+    real min_w;
+    real max_w;
+    int minmax_count;
+    for(j in 1:J) W_adj[j,1] = 1;         // first column / intercept
+    for(k in 2:K) {                       // remaining columns
+      min_w = min(W[1:J, k]);
+      max_w = max(W[1:J, k]);
+      minmax_count = 0;
+      for(j in 1:J) {
+        minmax_count = minmax_count + W[j,k] == min_w || W[j,k] == max_w;
+      }
+      if(minmax_count == J) {             // if column takes only 2 values
+        center[k] = mean(W[1:J, k]);
+        spread[k] = (max_w - min_w);
+      } else {                            // if column takes > 2 values
+        center[k] = mean(W[1:J, k]);
+        spread[k] = sd(W[1:J, k]) * 2;
+      }
+      for(j in 1:J)
+        W_adj[j,k] = (W[j,k] - center[k]) / spread[k];
+    }
+  }
+
 }
 parameters {
   vector<lower=0>[I] alpha;
   vector[I-1] beta_free;
   vector[m-1] kappa_free;
   vector[J] theta;
-  vector[K] lambda;
+  vector[K] lambda_adj;
 }
 transformed parameters {
   vector[I] beta;
@@ -38,13 +67,16 @@ transformed parameters {
   kappa = append_row(kappa_free, rep_vector(-1*sum(kappa_free), 1));
 }
 model {
-  vector[J] mu;
-  mu = W*lambda;
-  target += lognormal_lpdf(alpha | 1, 1);
-  target += normal_lpdf(beta_free | 0, 5);
-  target += normal_lpdf(kappa_free | 0, 5);
-  target += normal_lpdf(theta | 0, 1);
+  alpha ~ lognormal(1, 1);
+  beta_free ~ normal(0, 9);
+  kappa_free ~ normal(0, 9);
+  theta ~ normal(W_adj*lambda_adj, 1);
+  lambda_adj ~ student_t(3, 0, 1);
   for (n in 1:N)
-    target += grsm(r[n], theta[jj[n]], mu[jj[n]], alpha[ii[n]],
-                   beta[ii[n]], kappa);
+    target += rsm(r[n], theta[jj[n]] .* alpha[ii[n]], beta[ii[n]], kappa);
+}
+generated quantities {
+  vector[K] lambda;
+  lambda[2:K] = lambda_adj[2:K] ./ spread[2:K];
+  lambda[1] = W_adj[1, 1:K]*lambda_adj[1:K] - W[1, 2:K]*lambda[2:K];
 }

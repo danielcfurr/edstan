@@ -1,0 +1,76 @@
+---
+title: "Introduction to edstan"
+author: "Daniel C. Furr"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to edstan}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+# Overview
+
+The **edstan** package for **R** provides convenience functions and pre-programmed **Stan** models related to item response theory (IRT). Its purpose is to make fitting common IRT models using Stan easy. 
+
+The following table lists the models packaged with **edstan**. Each of these may optionally included a latent regression of ability. The **Stan** code for these models is documented in a series of case studies, linked in the table.
+
+| Model                      | **Stan** file           |
+|----------------------------|-------------------------|
+| Rasch                      | *rasch_latent_reg.stan* |
+| Partical credit            | *pcm_latent_reg.stan*   |
+| Rating scale               | *rsm_latent_reg.stan*   |
+| Two-parameter logistic     | *2pl_latent_reg.stan*   |
+| Generalized partial credit | *gpcm_latent_reg.stan*  |
+| Generalized rating scale   | *grsm_latent_reg.stan*  |
+
+The next table lists the functions packaged with **edstan**.
+
+| Function              | Purpose                                |
+|-----------------------|----------------------------------------|
+| `irt_data()`          | Prepares data for fitting              |
+| `labelled_integer()`  | Create vector of consecutive integers  |
+| `irt_stan()`          | Wrapper for Running MCMC               |
+| `print_irt_stan()`    | Show table of output                   |
+| `stan_columns_plot()` | Create plot of convergence statistics  |
+
+
+# Installation
+
+**edstan** relies on the **rstan** package, which should be installed first.
+[See here](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started) for instructions on installing **rstan**.
+
+# Example
+
+The R code below is an example how prepare data, fit the Rasch model, and then view results. It uses an example dataset packaged with **edstan**.
+
+
+```{r, eval=FALSE}
+# Load packages
+library(rstan)
+library(edstan)
+
+# Make the data list
+data_dich <- irt_data(y = aggression$dich, 
+                      ii = labelled_integer(aggression$description), 
+                      jj = aggression$person)
+
+# Fit the Rasch model
+fit_rasch <- irt_stan(data_dich, model = "rasch_latent_reg.stan",
+                      iter = 200, chains = 4)
+
+# View convergence statistics
+rhat_columns(fit_rasch)
+
+# View summary of parameter posteriors					  
+print_irt_stan(fit_rasch, data_dich)
+
+# Add a latent regression to the previous model
+data_lr <- irt_data(y = aggression$dich, 
+                    ii = labelled_integer(aggression$description), 
+                    jj = aggression$person,
+                    covariates = aggression[, c("male", "anger")],
+                    formula = ~ 1 + male*aggression)
+fit_lr <- irt_stan(data_lr, model = "rasch_latent_reg.stan",
+                   iter = 200, chains = 4)
+```
+

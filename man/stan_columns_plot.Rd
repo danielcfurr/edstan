@@ -33,10 +33,13 @@ spelling_list <- irt_data(response_matrix = spelling[, 2:5],
 \dontrun{
 # Fit a latent regression  2PL
 twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
-                      iter = 200, chains = 4)
+                      iter = 300, chains = 4)
 
-# Get a plot of Rhat statistics
+# Get a plot showing Rhat statistics
 rhat_columns(twopl_fit)
+
+# Get a plot showing number of effective draws
+rhat_columns(twopl_fit, stat = "n_eff")
 }
 }
 \seealso{

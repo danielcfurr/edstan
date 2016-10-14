@@ -73,7 +73,7 @@ agg_list_1 <- irt_data(y = aggression$poly,
                        jj = aggression$person)
 
 # Add a latent regression and use labelled_integer() with the items
-agg_list_2 <- irt_data(y = aggression$dich,
+agg_list_2 <- irt_data(y = aggression$poly,
                        ii = labelled_integer(aggression$description),
                        jj = aggression$person,
                        covariates = aggression[, c("male", "anger")],

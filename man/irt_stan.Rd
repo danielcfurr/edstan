@@ -31,7 +31,7 @@ associated \emph{.stan} files. The file names are given as the \code{model}
 argument.
 
 \tabular{ll}{
-   \strong{Model}             \tab      \strong{File}           \cr
+   \strong{Model}             \tab \strong{File}                \cr
    Rasch                      \tab \emph{rasch_latent_reg.stan} \cr
    Partial credit             \tab \emph{pcm_latent_reg.stan}   \cr
    Rating Scale               \tab \emph{rsm_latent_reg.stan}   \cr
@@ -39,6 +39,15 @@ argument.
    Generalized partial credit \tab \emph{gpcm_latent_reg.stan}  \cr
    Generalized rating Scale   \tab \emph{grsm_latent_reg.stan}
 }
+
+Three simplified models are also available: \emph{rasch_simple.stan},
+\emph{pcm_simple.stan}, \emph{rsm_simple.stan}. These are (respectively) the
+Rasch, partial credit, and rating scale models omitting the latent
+regression. There is no reason to use these instead of the models listed
+above, given that the above models allow for rather than require the
+inclusion of covariates for a latent regression. Instead, the purpose of
+the simplified models is to provide a straightforward starting point
+researchers who wish to craft their own Stan models.
 }
 \examples{
 # List the Stan models included in edstan
@@ -52,30 +61,52 @@ cat(readLines(rasch_file), sep = "\\n")
 
 \dontrun{
 # Fit the Rasch and 2PL models on wide-form data with a latent regression
+
 spelling_list <- irt_data(response_matrix = spelling[, 2:5],
                           covariates = spelling[, "male", drop = FALSE],
                           formula = ~ 1 + male)
-rasch_fit <- irt_stan(spelling_list, iter = 200, chains = 4)
-twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
-                      iter = 200, chains = 4)
 
-# Print a summary of the parameter posteriors
+rasch_fit <- irt_stan(spelling_list, iter = 300, chains = 4)
 print_irt_stan(rasch_fit, spelling_list)
+
+twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
+                      iter = 300, chains = 4)
 print_irt_stan(twopl_fit, spelling_list)
 
-# Fit the rating scale and generalized partial credit models to long-form
-# data without a latent regression
-agg_list <- irt_data(y = aggression$poly,
-                     ii = aggression$item,
-                     jj = aggression$person)
-fit_rsm <- irt_stan(agg_list, model = "rsm_latent_reg.stan",
-                    iter = 300, chains = 4)
-fit_gpcm <- irt_stan(agg_list, model = "gpcm_latent_reg.stan",
-                     iter = 300, chains = 4)
 
-# Print a summary of the parameter posteriors
-print_irt_stan(fit_rsm, agg_list)
-print_irt_stan(fit_gpcm, agg_list)
+# Fit the rating scale and partial credit models without a latent regression
+
+agg_list_1 <- irt_data(y = aggression$poly,
+                       ii = labelled_integer(aggression$description),
+                       jj = aggression$person)
+
+fit_rsm <- irt_stan(agg_list_1, model = "rsm_latent_reg.stan",
+                    iter = 300, chains = 4)
+print_irt_stan(fit_rsm, agg_list_1)
+
+fit_pcm <- irt_stan(agg_list_1, model = "pcm_latent_reg.stan",
+                    iter = 300, chains = 4)
+print_irt_stan(fit_gpcm, agg_list_1)
+
+
+# Fit the generalized rating scale and partial credit models including
+# a latent regression
+
+agg_list_2 <- irt_data(y = aggression$poly,
+                       ii = labelled_integer(aggression$description),
+                       jj = aggression$person,
+                       covariates = aggression[, c("male", "anger")],
+                       formula = ~ 1 + male*anger)
+
+fit_grsm <- irt_stan(agg_list_2, model = "grsm_latent_reg.stan",
+                     iter = 300, chains = 4)
+print_irt_stan(fit_grsm, agg_list_2)
+
+fit_gpcm <- irt_stan(agg_list_2, model = "gpcm_latent_reg.stan",
+                     iter = 300, chains = 4)
+print_irt_stan(fit_grsm, agg_list_2)
+
+
 }
 }
 \seealso{

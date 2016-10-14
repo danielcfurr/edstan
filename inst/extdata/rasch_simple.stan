@@ -9,7 +9,7 @@ data {
 parameters {
   vector[I-1] beta_free;
   vector[J] theta;
-  real sigma;
+  real<lower=1> sigma;
   real lambda;
 }
 transformed parameters {

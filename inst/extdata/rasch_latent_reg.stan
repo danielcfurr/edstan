@@ -9,9 +9,9 @@ data {
   matrix[J,K] W;                // person covariate matrix
 }
 transformed data {
-  vector[K] center;
-  vector[K] spread;
-  matrix[J,K] W_adj;
+  vector[K] center;              // values used to center covariates
+  vector[K] spread;              // values used to scale covariates
+  matrix[J,K] W_adj;             // centered and scaled covariates
   {
     real min_w;
     real max_w;

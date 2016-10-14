@@ -2,22 +2,23 @@
 % Please edit documentation in R/fitting_functions.R
 \name{print_irt_stan}
 \alias{print_irt_stan}
-\title{View a table of parameter posteriors after using \code{irt_stan}}
+\title{View a table of selected parameter posteriors after using \code{irt_stan}}
 \usage{
-print_irt_stan(fit, data_list, probs = c(0.025, 0.25, 0.5, 0.75, 0.975),
-  print_opts = list(digits = 3))
+print_irt_stan(fit, data_list = NULL, ...)
 }
 \arguments{
 \item{fit}{A \code{stanfit-class} object created by \code{\link{irt_stan}}.}
 
-\item{data_list}{A Stan data list created with \code{\link{irt_data}}.}
+\item{data_list}{An optional Stan data list created with
+\code{\link{irt_data}}. If provided, the printed posterior summaries for
+selected parameters are grouped by item. Otherwise, ungrouped results are
+provided, which may be preferred, for example, for the Rasch or rating
+scale models.}
 
-\item{probs}{A vector of quantiles for summarizing parameter posteriors.}
-
-\item{print_opts}{Options passed to \code{\link[base]{print}} as a list.}
+\item{...}{Additional options passed to \code{\link[base]{print}}.}
 }
 \description{
-View a table of parameter posteriors after using \code{irt_stan}
+View a table of selected parameter posteriors after using \code{irt_stan}
 }
 \examples{
 # Make a suitable data list:
@@ -28,10 +29,12 @@ spelling_list <- irt_data(response_matrix = spelling[, 2:5],
 \dontrun{
 # Fit a latent regression  2PL
 twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
-                      iter = 200, chains = 4)
+                      iter = 300, chains = 4)
 
 # Get a table of parameter posteriors
 print_irt_stan(twopl_fit, spelling_list)
+# Or
+print_irt_stan(twopl_fit)
 }
 }
 

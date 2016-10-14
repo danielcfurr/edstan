@@ -9,9 +9,9 @@ data {
   matrix[J,K] W;                // person covariate matrix
 }
 transformed data {
-  vector[K] center;
-  vector[K] spread;
-  matrix[J,K] W_adj;
+  vector[K] center;              // values used to center covariates
+  vector[K] spread;              // values used to scale covariates
+  matrix[J,K] W_adj;             // centered and scaled covariates
   {
     real min_w;
     real max_w;
@@ -31,7 +31,8 @@ transformed data {
         center[k] = mean(W[1:J, k]);
         spread[k] = sd(W[1:J, k]) * 2;
       }
-      for(j in 1:J) W_adj[j,k] = (W[j,k] - center[k]) / spread[k];
+      for(j in 1:J)
+        W_adj[j,k] = (W[j,k] - center[k]) / spread[k];
     }
   }
 }
@@ -49,9 +50,9 @@ transformed parameters {
 model {
   alpha ~ lognormal(1, 1);
   beta_free ~ normal(0, 3);
-  lambda_adj ~ student_t(1, 0, 1);
+  lambda_adj ~ student_t(3, 0, 1);
   theta ~ normal(W_adj*lambda_adj, 1);
-  y ~ bernoulli_logit(alpha[ii].*(theta[jj] - beta[ii]));
+  y ~ bernoulli_logit(alpha[ii].*theta[jj] - beta[ii]);
 }
 generated quantities {
   vector[K] lambda;
