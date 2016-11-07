@@ -21,5 +21,6 @@ model {
   beta_free ~ normal(0, 3);
   lambda ~ student_t(1, 0, 1);
   theta ~ normal(lambda, sigma);
+  sigma ~ exponential(.1);
   y ~ bernoulli_logit(theta[jj] - beta[ii]);
 }

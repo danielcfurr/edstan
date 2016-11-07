@@ -21,6 +21,7 @@
 #' It is expected that once a user is comfortable fitting pre-defined
 #' \pkg{edstan} models, they will write their own Stan models and fit them with
 #' \code{\link[rstan]{stan}}, for which \code{\link{irt_stan}} is a wrapper.
+#' @import rstan
 "_PACKAGE"
 #> [1] "_PACKAGE"
 
@@ -176,15 +177,21 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
     W <- matrix(1, ncol = 1, nrow = max(jj))
   } else {
     if(nrow(covariates) == max(jj)) {
-      W <- model.matrix(formula, covariates)
+      W <- stats::model.matrix(formula, covariates)
     } else if(nrow(covariates) == length(jj)) {
-      W <- model.matrix(formula, covariates[!duplicated(jj),])
+      W <- stats::model.matrix(formula, covariates[!duplicated(jj),])
     } else {
       stop("The 'covariates' must have a number of rows equal to the ",
            "number of persons or to the length of 'jj'. If 'covariates' has ",
            "multiple rows per person (as with long-form data), all of them ",
            "must be identical.")
     }
+  }
+  if(!all(W[,1] == 1)) {
+    stop("The person covariate matrix must have a first column with all ",
+         "elements set to one. If you supplied a formula, the intercept term ",
+         "cannot be omitted. If you did not supply a formula, the first ",
+         "column of 'covariates' must have all elements set to one.")
   }
 
   data_list <- list(N = length(y), I = max(ii), J = max(jj), ii = ii, jj = jj,
@@ -202,7 +209,7 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
 #'   alternatively, a user-created .stan file that accepts \code{data_list} as
 #'   input data.
 #'   The ".stan" file extension may be omitted.
-#'   Defaults to either rasch_latent_reg.stan or pcm_latent_reg.stan.
+#'   Defaults to either "rasch_latent_reg.stan" or "pcm_latent_reg.stan".
 #' @param ... Additional options passed to \code{\link[rstan]{stan}}. The
 #'   usual choices are \code{iter} for the number of iterations and
 #'   \code{chains} for the number of chains.
@@ -303,7 +310,7 @@ irt_stan <- function(data_list, model = "", ... ) {
 
   # Choose Stan model file if one not provided. If provided, add ".stan" to Stan
   # file if needed. Look for file first in working directory/given file path. If
-  #not found, look up in package install folder.
+  # not found, look up in package install folder.
   if(model == "") {
     stub <- ifelse(is_polytomous, "pcm_latent_reg.stan", "rasch_latent_reg.stan")
     stan_file <- file.path(system.file("extdata", package = "edstan"), stub)
@@ -390,7 +397,9 @@ print_irt_stan <- function(fit, data_list = NULL, ...) {
 
   if(is.null(data_list)) {
 
-    capture <- capture.output(print(fit, pars = possible_pars[available], ...))
+    capture <- utils::capture.output(
+      print(fit, pars = possible_pars[available], ...)
+    )
 
   } else {
 
@@ -437,7 +446,7 @@ print_irt_stan <- function(fit, data_list = NULL, ...) {
     out_labels[length(out_labels) + 1] <- "Ability distribution"
 
     # Get print() output and reformat
-    capture <- capture.output(print(fit, pars = unlist(out_list), ...))
+    capture <- utils::capture.output(print(fit, pars = unlist(out_list), ...))
     blanks <- grep("^$", capture)
     capture[blanks[1]:blanks[2]] <- paste0("  ", capture[blanks[1]:blanks[2]])
     for(i in 1:length(out_list)) {
@@ -486,11 +495,18 @@ print_irt_stan <- function(fit, data_list = NULL, ...) {
 #' }
 #' @export
 stan_columns_plot <- function(fit, stat = "Rhat", ...) {
+
   fit_summary <- as.data.frame(rstan::summary(fit, ...)[["summary"]])
-  fit_summary$Parameter <- as.factor(gsub("\\[.*]", "", rownames(fit_summary)))
-  fit_summary$value_to_plot <- fit_summary[, stat]
+
+  # Creating vector before adding to data.frame helps pass CRAN checks.
+  Parameter <- as.factor(gsub("\\[.*]", "", rownames(fit_summary)))
+  value_to_plot <- fit_summary[, stat]
+  fit_summary$Parameter <- Parameter
+  fit_summary$value_to_plot <- value_to_plot
+
   ggplot2::ggplot(fit_summary) +
     ggplot2::aes(x = Parameter, y = value_to_plot, color = Parameter) +
     ggplot2::geom_jitter(height = 0, width = 0.5, show.legend = FALSE) +
     ggplot2::ylab(stat)
+
 }

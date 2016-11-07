@@ -13,7 +13,7 @@ irt_stan(data_list, model = "", ...)
 alternatively, a user-created .stan file that accepts \code{data_list} as
 input data.
 The ".stan" file extension may be omitted.
-Defaults to either rasch_latent_reg.stan or pcm_latent_reg.stan.}
+Defaults to either "rasch_latent_reg.stan" or "pcm_latent_reg.stan".}
 
 \item{...}{Additional options passed to \code{\link[rstan]{stan}}. The
 usual choices are \code{iter} for the number of iterations and
@@ -105,8 +105,6 @@ print_irt_stan(fit_grsm, agg_list_2)
 fit_gpcm <- irt_stan(agg_list_2, model = "gpcm_latent_reg.stan",
                      iter = 300, chains = 4)
 print_irt_stan(fit_grsm, agg_list_2)
-
-
 }
 }
 \seealso{

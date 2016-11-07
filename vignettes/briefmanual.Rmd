@@ -1,0 +1,321 @@
+---
+title: "A brief manual"
+author: Daniel C. Furr
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{A brief manual}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r, include = FALSE}
+# Hidden setup
+knitr::opts_chunk$set(eval = TRUE)
+set.seed(17)
+```
+
+# Overview
+
+The **edstan** package for **R** provides convenience functions and pre-programmed **Stan** models related to item response theory (IRT). Its purpose is to make fitting common IRT models using Stan easy. **edstan** relies on the **rstan** package, which should be installed first.
+[See here](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started) for instructions on installing **rstan**.
+
+The following table lists the models packaged with **edstan**. Each of these may optionally included a latent regression of ability. The **Stan** code for these models is documented in a series of case studies.
+
+| Model                      | **Stan** file           |
+|----------------------------|-------------------------|
+| Rasch                      | *rasch_latent_reg.stan* |
+| Partial credit             | *pcm_latent_reg.stan*   |
+| Rating scale               | *rsm_latent_reg.stan*   |
+| Two-parameter logistic     | *2pl_latent_reg.stan*   |
+| Generalized partial credit | *gpcm_latent_reg.stan*  |
+| Generalized rating scale   | *grsm_latent_reg.stan*  |
+
+The next table lists the functions packaged with **edstan**.
+
+| Function              | Purpose                                |
+|-----------------------|----------------------------------------|
+| `irt_data()`          | Prepares data for fitting              |
+| `labelled_integer()`  | Create vector of consecutive integers  |
+| `irt_stan()`          | Wrapper for Running MCMC               |
+| `print_irt_stan()`    | Show table of output                   |
+| `stan_columns_plot()` | Create plot of convergence statistics  |
+
+
+# Brief tutorial
+
+## Spelling data and dichotomous IRT
+
+The R code below first loads **edstan**, which implicitly loads **rstan**. Then the two commands that follow set options related to **rstan**, which are generally recommended. The first causes compiled **Stan** models to be saved to disc, which allows models to run more quickly after the first time. The second causes **Stan** to run multiple MCMC chains in parallel.
+
+```{r, eval = TRUE, message = FALSE}
+# Load packages and set options
+library(edstan)
+rstan_options(auto_write = TRUE)
+options(mc.cores = 2)
+```
+
+Next we get summary information for the spelling data.
+
+```{r}
+# Summarize the spelling data
+str(spelling)
+```
+
+The dataset is a response matrix indicating whether the `r nrow(spelling)` respondents spelled four words correctly. It also includes a dummy variable for whether the respondent is male. Data is fed into **Stan** in list form, and the next block of code demonstrates how a suitable data list may be constructed using the `irt_data()` function. The response matrix (that is, all columns but the first) is provided as the `response_matrix` option. 
+
+```{r}
+# Make a data list
+simple_list <- irt_data(response_matrix = spelling[, -1])
+str(simple_list)
+```
+
+This data list may be fed to the `irt_stan()` function to fit a Rasch or 2PL model, but for this example we will add a person covariate to the model using the optional arguments `covariates` and `formula`. The `covariates` option takes a data frame of person-related covariates and the `formula` option takes a formula to be applied to that data frame. The left side of the formula should be left empty, though implicitly it is latent ability. The choice of what to include in the latent regression (if anything) is made when calling `irt_data()` to assemble a data list.
+
+In the next block a data list is made that includes `male` as a covariate. Note that `drop = FALSE` is specified when subsetting the data frame below because **R** will simplify the result to a vector otherwise. This complication is default **R** behavior and not specific to **edstan**.
+
+```{r}
+# Make a data list with person covariates
+latent_reg_list <- irt_data(response_matrix = spelling[, -1],
+                            covariates = spelling[, "male", drop = FALSE],
+                            formula = ~ 1 + male)
+str(latent_reg_list)
+```
+
+The only difference between the two lists are `K` and `W`. The first list has `W` with $K=1$ columns, which is a constant for the model intercept. The second list has `W` with $K=2$ columns, which correspond to the constant for the model intercept and the male indicator variable. In either list, `W` has one row per person.
+
+Next we fit the model using the `irt_stan()` function, which is a wrapper for `stan()` from **rstan**. `latent_reg_list` is provided as the data, and the name of one of the *.stan* files to use is provided as the `model` argument. We also choose the number of chains and number of iterations per chain. By default the first half of each chain is discarded as warm up.
+
+```{r, results='hide', message=FALSE}
+# Fit the Rasch model
+fit_rasch <- irt_stan(latent_reg_list, model = "rasch_latent_reg.stan",
+                      iter = 300, chains = 4)
+```
+
+The `stan_columns_plot()` shows convergence statistics for the fitted model. As an aside, it may also be used to show other statistics such as posterior means or numbers of effective samples.
+
+```{r, fig.width=6}
+# View convergence statistics
+stan_columns_plot(fit_rasch)
+```
+
+`print_irt_stan()` provides a summary of parameter posteriors. It is a wrapper for the `print()` method for fitted **Stan** models, selecting and organizing the most interesting parameters. Labels for the items are automatically taken from the column names of the response matrix. Regarding the parameters in the output: `beta` refers to item difficulties, `lambda` refers to latent regression coefficients, and `sigma` is the standard deviation of the ability distribution.
+
+```{r}
+# View a summary of parameter posteriors					  
+print_irt_stan(fit_rasch, latent_reg_list)
+```
+
+If we prefer to fit the 2PL model with latent regression, we could call `irt_stan()` and select that *.stan* file.
+
+```{r, eval=FALSE}
+# Fit the Rasch model
+fit_rasch <- irt_stan(latent_reg_list, model = "2pl_latent_reg.stan",
+                      iter = 300, chains = 4)
+```
+
+
+## Verbal aggression data and polytomous IRT
+
+The second example will use the verbal aggression data to fit a polytomous item response theory model.
+
+```{r}
+str(aggression)
+```
+
+The data consists of 316 persons responding to 24 items with responses scored as 0, 1, or 2. The variable `person` is a person ID, `item` is an item ID, and `poly` is the scored response. In this way, the data may be said to be in "long form" as there is one row per person-item combination. The data includes two person covariates: `male` is a dummy variable for whether the respondent is male, and `anger` is the person's trait anger raw score, a separate measure.
+
+The `labelled_integer()` function may help prepare the data list when the data are in long form. **Stan** models generally require that ID variables be consecutive integers starting at one. In other words, the first item must have an ID value of 1, the second 2, and so on. The same is true of person IDs. But sometimes the raw data may have alphanumerics or arbitrary numbers for person or item IDs, and if so we can use `labelled_integer()` to create an appropriate vector of consecutive integers. The verbal aggression data includes the variable `description`, which is a brief text description of the item. Below, `labelled_integer()` is applied to the first few values of this variable.
+
+```{r}
+labelled_integer(aggression$description[1:5])
+```
+
+The result is integer values that are labeled with the original text descriptions. For the verbal aggression data, we could simply use the `item` variable for an item index rather than apply `labelled_integer()` to the descriptions, but a benefit of using `labelled_integer()` is that the table of posterior summaries (shown shortly) will include the item labels.
+
+Next we make the data list using `irt_data()`. However, we'll use a different set of arguments because the data are in long form: `y` takes the responses in vector form, `ii` takes a vector of item IDs, and `jj` takes a vector of person IDs. The use of `covariates` and `formula` are the same as before.
+
+```{r}
+agg_list <- irt_data(y = aggression$poly,
+                     ii = labelled_integer(aggression$description),
+                     jj = aggression$person,
+                     covariates = aggression[, c("male", "anger")],
+                     formula = ~ 1 + male*anger)
+str(agg_list)
+```
+
+The model is fit using the generalized partial credit model.
+
+```{r, results='hide', message=FALSE}
+fit_gpcm <- irt_stan(agg_list, model = "gpcm_latent_reg.stan",
+                     iter = 300, chains = 4)
+```
+
+As before, a plot of convergence statistics is made.
+
+```{r, fig.width=6}
+# View convergence statistics
+stan_columns_plot(fit_gpcm)
+```
+
+And lastly we obtain a table of posterior summaries. Here, `alpha` refers to discriminations, `beta` refers to step difficulties, and `lambda` refers to latent regression coefficients.
+
+```{r}
+print_irt_stan(fit_gpcm, agg_list)
+```
+
+
+# Technical notes
+
+Users will be able to fit the **edstan** models without full knowledge of the technical details, though these are provided in this section. All that is really needed for interpreting results is to know the meanings assigned to the Greek letters.
+
+
+## Notation
+
+Variables and parameters are similar across **edstan** models. The variables used are:
+
+* $i = 1 \ldots I$ indexes items.
+* $j = 1 \ldots J$ indexes persons.
+* $m_i$ is simultaneously the maximum score and the number of step difficulty parameters for item $i$ for partial credit models. Alternatively, $m$ is the same across all items for rating scale models.
+* $s = 1 \ldots m_i$ or $s = 1 \ldots m$ indexes steps within items.
+* $y_{ij}$ is the scored response of person $j$ to item $i$. The lowest score for items must be zero (except for rating scale models).
+* $w_{j}$ is the vector of covariates for person $j$, the first element of which *must* equal one for a model intercept. $w_{j}$ may be assembled into a $J$-by-$K$ covariate matrix $W$, where $K$ is number of elements in $w_j$.
+
+The parameters used are:
+
+* For the Rasch and 2PL models, $\beta_i$ is the difficulty for item $i$. For the rating scale models, $\beta_i$ is the mean difficulty for item $i$. For partial credit models, $\beta_{is}$ is the difficulty for step $s$ of item $i$.
+* $\kappa_s$ is a step difficulty for the (generalized) rating scale model.
+* $\alpha_i$ is the discrimination parameter for item $i$ (when applicable).
+* $\theta_j$ is the ability for person $j$.
+* $\lambda$ is the vector of latent regression parameters of length $K$ (when applicable).
+* $\sigma$ is standard deviation for the ability distribution (when applicable).
+
+The *.stan* files and the notation for the models below closely adhere to these conventions.
+
+
+## Rasch family models
+
+### Rasch model
+
+*rasch_latent_reg.stan*
+
+$$ 
+\mathrm{logit} [ \Pr(y_{ij} = 1 | \theta_j, \beta_i) ] = 
+  \theta_j - \beta_i
+$$
+
+### Partial credit model
+
+*pcm_latent_reg.stan*
+
+$$
+\Pr(Y_{ij} = y,~y > 0 | \theta_j, \beta_i) =
+\frac{\exp \sum_{s=1}^y (\theta_j - \beta_{is})}
+     {1 + \sum_{k=1}^{m_i} \exp \sum_{s=1}^k (\theta_j - \beta_{is})}
+$$
+$$
+\Pr(Y_{ij} = y,~y = 0 | \theta_j, \beta_i) =
+\frac{1}
+     {1 + \sum_{k=1}^{m_i} \exp \sum_{s=1}^k (\theta_j - \beta_{is})}
+$$
+
+### Rating scale model
+
+*rsm_latent_reg.stan*
+
+$$
+\Pr(Y_{ij} = y,~y > 0 | \theta_j, \beta_i, \kappa_s) =
+\frac{\exp \sum_{s=1}^y (\theta_j - \beta_i - \kappa_s)}
+     {1 + \sum_{k=1}^{m} \exp \sum_{s=1}^k (\theta_j - \beta_i - \kappa_s)}
+$$
+$$
+\Pr(Y_{ij} = y,~y = 0 | \theta_j, \beta_i, \kappa_s) =
+\frac{1}
+     {1 + \sum_{k=1}^{m} \exp \sum_{s=1}^k (\theta_j - \beta_i - \kappa_s)}
+$$
+
+
+## Models featuring discrimination parameters
+
+### Two-parameter logistic model
+
+*2pl_latent_reg.stan*
+
+$$
+  \mathrm{logit} [ \Pr(y_{ij} = 1 | \alpha_i, \beta_i, \theta_j) ] =
+  \alpha_i \theta_j - \beta_i
+$$
+
+### Generalized partial credit model
+
+*gpcm_latent_reg.stan*
+
+$$
+\Pr(Y_{ij} = y,~y > 0 | \theta_j, \alpha_i, \beta_i) =
+\frac{\exp \sum_{s=1}^y (\alpha_i  \theta_j + w_{j}' \lambda - \beta_{is})}
+     {1 + \sum_{k=1}^{m_i} \exp \sum_{s=1}^k 
+       (\alpha_i \theta_j + w_{j}' \lambda - \beta_{is})}
+$$
+$$
+\Pr(Y_{ij} = y,~y = 0 | \theta_j, \alpha_i, \beta_i) =
+\frac{1}
+     {1 + \sum_{k=1}^{m_i} \exp \sum_{s=1}^k 
+       (\alpha_i \theta_j + w_{j}' \lambda - \beta_{is})}
+$$
+
+
+### Generalized rating scale model
+
+*grsm_latent_reg.stan*
+
+$$
+\Pr(Y_{ij} = y,~y > 0 | \theta_j, \lambda, \alpha_i, \beta_i, \kappa_s) =
+\frac{\exp \sum_{s=1}^y 
+       (\alpha_i \theta_j - \beta_i - \kappa_s)}
+     {1 + \sum_{k=1}^{m} \exp \sum_{s=1}^k 
+       (\alpha_i \theta_j - \beta_i - \kappa_s)}
+$$
+$$
+\Pr(Y_{ij} = y,~y = 0 | \theta_j, \lambda, \alpha_i, \beta_i, \kappa_s) =
+\frac{1}
+     {1 + \sum_{k=1}^{m} \exp \sum_{s=1}^k 
+       (\alpha_i \theta_j - \beta_i - \kappa_s)}
+$$
+
+
+## Priors
+
+For Rasch family models, the prior distributions for the person-related parameters are
+$$\theta_j \sim \mathrm{N}(w_j' \lambda, \sigma^2)$$
+$$\lambda \sim t_3(0, 1)$$
+$$\sigma \sim \mathrm{Exp}(.1)$$
+
+For models with discrimination parameters, the priors are
+$$\theta_j \sim \mathrm{N}(w_j' \lambda, 1)$$
+$$\lambda \sim t_3(0, 1)$$
+
+In either case, the prior for $\lambda$ is applied to centered and scaled versions of the person covariates. Specifically: (1) continuous covariates are mean-centered and then divided by two times their standard deviations, (2) binary covariates are mean-centered and divided their maximum minus minimum values, and (3) no change is made to the constant, set to one, for the model intercept. $t_3$ is the Student's $t$ distribution with three degrees of freedom. Though the model is estimated using adjusted covariates, the **Stan** models report $\lambda$ for the original values of the covariates.
+
+The priors for the item parameters are
+$$\alpha \sim \mathrm{lognormal}(1, 1)$$
+$$\beta \sim \mathrm{N}(0, 9)$$
+$$\kappa \sim \mathrm{N}(0, 9)$$
+No prior is placed on the last $\beta_i$, as it is constrained such that the vector $\beta$ has a mean of zero. The same is true regarding the vector $\kappa$.
+
+
+# Writing your own **Stan** models
+
+It is expected that **edstan** users will eventually want to write their own **Stan** models. In this case, the **edstan** functions may still be useful. If the user-written models use the same conventions for naming variables and parameters as the **edstan** models, then the `irt_data()` and `print_irt_stan()` functions will work just fine for the user-written models. The function `stan_columns_plot()` works with any **Stan** model, and `labelled_integer()` may help in data preparation for **Stan** models in general.
+
+The **Stan** models included in **edstan** may be used as a starting point in developing custom models. However, the latent regression models are unusually complicated because they are written to be as general as possible. In particular, the "automatic" priors for latent regression coefficients lead to cumbersome **Stan** code. For this reason, simpler **Stan** models are provided that omit the latent regression. These are *rasch_simple.stan*, *pcm_simple.stan*, and *rsm_simple.stan*. The following code shows how to find and view one of these files.
+
+```{r}
+# Find and view the "simple" Rasch model
+rasch_file <- system.file("extdata/rasch_simple.stan",
+                          package = "edstan")
+cat(readLines(rasch_file), sep = "\n")
+```
+
+Note that the latent regression models may be used even when person covariates are not included and will be similarly efficient as their "simple" counterparts.
