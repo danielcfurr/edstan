@@ -8,12 +8,12 @@ output:
 vignette: >
   %\VignetteIndexEntry{A brief manual}
   %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
+  %\usepackage[utf8]{inputenc}
 ---
 
 ```{r, include = FALSE}
 # Hidden setup
-knitr::opts_chunk$set(eval = TRUE)
+knitr::opts_chunk$set(eval = FALSE)
 set.seed(17)
 ```
 
@@ -50,11 +50,11 @@ The next table lists the functions packaged with **edstan**.
 
 The R code below first loads **edstan**, which implicitly loads **rstan**. Then the two commands that follow set options related to **rstan**, which are generally recommended. The first causes compiled **Stan** models to be saved to disc, which allows models to run more quickly after the first time. The second causes **Stan** to run multiple MCMC chains in parallel.
 
-```{r, eval = TRUE, message = FALSE}
+```{r, message = FALSE, results = 'hide'}
 # Load packages and set options
 library(edstan)
 rstan_options(auto_write = TRUE)
-options(mc.cores = 2)
+options(mc.cores = parallel::detectCores())
 ```
 
 Next we get summary information for the spelling data.
@@ -64,7 +64,7 @@ Next we get summary information for the spelling data.
 str(spelling)
 ```
 
-The dataset is a response matrix indicating whether the `r nrow(spelling)` respondents spelled four words correctly. It also includes a dummy variable for whether the respondent is male. Data is fed into **Stan** in list form, and the next block of code demonstrates how a suitable data list may be constructed using the `irt_data()` function. The response matrix (that is, all columns but the first) is provided as the `response_matrix` option. 
+The dataset is a response matrix indicating whether the 658 respondents spelled four words correctly. It also includes a dummy variable for whether the respondent is male. Data is fed into **Stan** in list form, and the next block of code demonstrates how a suitable data list may be constructed using the `irt_data()` function. The response matrix (that is, all columns but the first) is provided as the `response_matrix` option. 
 
 ```{r}
 # Make a data list
@@ -88,7 +88,7 @@ The only difference between the two lists are `K` and `W`. The first list has `W
 
 Next we fit the model using the `irt_stan()` function, which is a wrapper for `stan()` from **rstan**. `latent_reg_list` is provided as the data, and the name of one of the *.stan* files to use is provided as the `model` argument. We also choose the number of chains and number of iterations per chain. By default the first half of each chain is discarded as warm up.
 
-```{r, results='hide', message=FALSE}
+```{r, message=FALSE, results='hide'}
 # Fit the Rasch model
 fit_rasch <- irt_stan(latent_reg_list, model = "rasch_latent_reg.stan",
                       iter = 300, chains = 4)
@@ -122,6 +122,7 @@ fit_rasch <- irt_stan(latent_reg_list, model = "2pl_latent_reg.stan",
 The second example will use the verbal aggression data to fit a polytomous item response theory model.
 
 ```{r}
+# Describe the data
 str(aggression)
 ```
 
@@ -130,6 +131,7 @@ The data consists of 316 persons responding to 24 items with responses scored as
 The `labelled_integer()` function may help prepare the data list when the data are in long form. **Stan** models generally require that ID variables be consecutive integers starting at one. In other words, the first item must have an ID value of 1, the second 2, and so on. The same is true of person IDs. But sometimes the raw data may have alphanumerics or arbitrary numbers for person or item IDs, and if so we can use `labelled_integer()` to create an appropriate vector of consecutive integers. The verbal aggression data includes the variable `description`, which is a brief text description of the item. Below, `labelled_integer()` is applied to the first few values of this variable.
 
 ```{r}
+# Show an example of using labelled_integer()
 labelled_integer(aggression$description[1:5])
 ```
 
@@ -138,6 +140,7 @@ The result is integer values that are labeled with the original text description
 Next we make the data list using `irt_data()`. However, we'll use a different set of arguments because the data are in long form: `y` takes the responses in vector form, `ii` takes a vector of item IDs, and `jj` takes a vector of person IDs. The use of `covariates` and `formula` are the same as before.
 
 ```{r}
+# Make the data list
 agg_list <- irt_data(y = aggression$poly,
                      ii = labelled_integer(aggression$description),
                      jj = aggression$person,
@@ -148,7 +151,8 @@ str(agg_list)
 
 The model is fit using the generalized partial credit model.
 
-```{r, results='hide', message=FALSE}
+```{r, message=FALSE, results='hide'}
+# Fit the generalized partial credit model
 fit_gpcm <- irt_stan(agg_list, model = "gpcm_latent_reg.stan",
                      iter = 300, chains = 4)
 ```
@@ -163,6 +167,7 @@ stan_columns_plot(fit_gpcm)
 And lastly we obtain a table of posterior summaries. Here, `alpha` refers to discriminations, `beta` refers to step difficulties, and `lambda` refers to latent regression coefficients.
 
 ```{r}
+# View a summary of parameter posteriors	
 print_irt_stan(fit_gpcm, agg_list)
 ```
 
