@@ -506,7 +506,7 @@ stan_columns_plot <- function(fit, stat = "Rhat", ...) {
 
   ggplot2::ggplot(fit_summary) +
     ggplot2::aes(x = Parameter, y = value_to_plot, color = Parameter) +
-    ggplot2::geom_jitter(height = 0, width = 0.5, show.legend = FALSE) +
+    ggplot2::geom_jitter(height = 0, width = 0.25, show.legend = FALSE) +
     ggplot2::ylab(stat)
 
 }
