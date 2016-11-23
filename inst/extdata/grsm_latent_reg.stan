@@ -6,6 +6,31 @@ functions {
     probs = softmax(cumulative_sum(unsummed));
     return categorical_lpmf(r | probs);
   }
+  matrix obtain_adjustments(matrix W) {
+    real min_w;
+    real max_w;
+    int minmax_count;
+    matrix[2, cols(W)] adj;
+    adj[1, 1] = 0;
+    adj[2, 1] = 1;
+    if(cols(W) > 1) {
+      for(k in 2:cols(W)) {                       // remaining columns
+        min_w = min(W[1:rows(W), k]);
+        max_w = max(W[1:rows(W), k]);
+        minmax_count = 0;
+        for(j in 1:rows(W))
+          minmax_count = minmax_count + W[j,k] == min_w || W[j,k] == max_w;
+        if(minmax_count == rows(W)) {       // if column takes only 2 values
+          adj[1, k] = mean(W[1:rows(W), k]);
+          adj[2, k] = (max_w - min_w);
+        } else {                            // if column takes > 2 values
+          adj[1, k] = mean(W[1:rows(W), k]);
+          adj[2, k] = sd(W[1:rows(W), k]) * 2;
+        }
+      }
+    }
+    return adj;
+  }
 }
 data {
   int<lower=1> I;                // # items
@@ -20,37 +45,16 @@ data {
 transformed data {
   int r[N];                      // modified response; r in {1 ... m_i + 1}
   int m;                         // # steps
-  vector[K] center;              // values used to center covariates
-  vector[K] spread;              // values used to scale covariates
+  matrix[2,K] adj;               // values for centering and scaling covariates
   matrix[J,K] W_adj;             // centered and scaled covariates
 
   m = max(y);
   for(n in 1:N)
     r[n] = y[n] + 1;
 
-  {
-    real min_w;
-    real max_w;
-    int minmax_count;
-    for(j in 1:J) W_adj[j,1] = 1;         // first column / intercept
-    for(k in 2:K) {                       // remaining columns
-      min_w = min(W[1:J, k]);
-      max_w = max(W[1:J, k]);
-      minmax_count = 0;
-      for(j in 1:J) {
-        minmax_count = minmax_count + W[j,k] == min_w || W[j,k] == max_w;
-      }
-      if(minmax_count == J) {             // if column takes only 2 values
-        center[k] = mean(W[1:J, k]);
-        spread[k] = (max_w - min_w);
-      } else {                            // if column takes > 2 values
-        center[k] = mean(W[1:J, k]);
-        spread[k] = sd(W[1:J, k]) * 2;
-      }
-      for(j in 1:J)
-        W_adj[j,k] = (W[j,k] - center[k]) / spread[k];
-    }
-  }
+  adj = obtain_adjustments(W);
+  for(k in 1:K) for(j in 1:J)
+      W_adj[j,k] = (W[j,k] - adj[1,k]) / adj[2,k];
 
 }
 parameters {
@@ -77,6 +81,6 @@ model {
 }
 generated quantities {
   vector[K] lambda;
-  lambda[2:K] = lambda_adj[2:K] ./ spread[2:K];
+  lambda[2:K] = lambda_adj[2:K] ./ to_vector(adj[2,2:K]);
   lambda[1] = W_adj[1, 1:K]*lambda_adj[1:K] - W[1, 2:K]*lambda[2:K];
 }

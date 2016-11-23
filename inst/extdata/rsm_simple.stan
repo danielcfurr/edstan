@@ -23,25 +23,20 @@ transformed data {
     r[n] = y[n] + 1;
 }
 parameters {
-  vector[I-1] beta_free;
+  vector[I] beta;
   vector[m-1] kappa_free;
   vector[J] theta;
   real<lower=0> sigma;
-  real lambda;
 }
 transformed parameters {
-  vector[I] beta;
   vector[m] kappa;
-  beta[1:(I-1)] = beta_free;
-  beta[I] = -1*sum(beta_free);
   kappa[1:(m-1)] = kappa_free;
   kappa[m] = -1*sum(kappa_free);
 }
 model {
-  beta_free ~ normal(0, 9);
+  beta ~ normal(0, 9);
   kappa_free ~ normal(0, 9);
-  theta ~ normal(lambda, sigma);
-  lambda ~ student_t(3, 0, 1);
+  theta ~ normal(0, sigma);
   sigma ~ exponential(.1);
   for (n in 1:N)
     target += rsm(r[n], theta[jj[n]], beta[ii[n]], kappa);
