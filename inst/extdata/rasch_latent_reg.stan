@@ -56,7 +56,7 @@ transformed parameters {
 model {
   beta_free ~ normal(0, 3);
   theta ~ normal(W_adj*lambda_adj, sigma);
-  lambda_adj ~ student_t(1, 0, 1);
+  lambda_adj ~ student_t(3, 0, 1);
   sigma ~ exponential(.1);
   y ~ bernoulli_logit(theta[jj] - beta[ii]);
 }
