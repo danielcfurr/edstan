@@ -86,7 +86,7 @@ print_irt_stan(fit_rsm, agg_list_1)
 
 fit_pcm <- irt_stan(agg_list_1, model = "pcm_latent_reg.stan",
                     iter = 300, chains = 4)
-print_irt_stan(fit_gpcm, agg_list_1)
+print_irt_stan(fit_pcm, agg_list_1)
 
 
 # Fit the generalized rating scale and partial credit models including

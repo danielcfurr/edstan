@@ -1,10 +1,10 @@
 functions {
-  real pcm(int r, real theta, vector beta) {
+  real pcm(int y, real theta, vector beta) {
     vector[rows(beta) + 1] unsummed;
     vector[rows(beta) + 1] probs;
     unsummed = append_row(rep_vector(0.0, 1), theta - beta);
     probs = softmax(cumulative_sum(unsummed));
-    return categorical_lpmf(r | probs);
+    return categorical_lpmf(y + 1 | probs);
   }
 }
 data {
@@ -16,10 +16,7 @@ data {
   int<lower=0> y[N];             // response for n; y = 0, 1 ... m_i
 }
 transformed data {
-  int r[N];                      // modified response; r = 1, 2, ... m_i + 1
   int m;                         // # parameters per item (same for all items)
-  for(n in 1:N)
-    r[n] = y[n] + 1;
   m = max(y);
 }
 parameters {
@@ -33,5 +30,5 @@ model {
   theta ~ normal(0, sigma);
   sigma ~ exponential(.1);
   for (n in 1:N)
-    target += pcm(r[n], theta[jj[n]], beta[ii[n]]);
+    target += pcm(y[n], theta[jj[n]], beta[ii[n]]);
 }

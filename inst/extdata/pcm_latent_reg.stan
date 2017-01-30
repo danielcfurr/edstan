@@ -1,10 +1,10 @@
 functions {
-  real pcm(int r, real theta, vector beta) {
+  real pcm(int y, real theta, vector beta) {
     vector[rows(beta) + 1] unsummed;
     vector[rows(beta) + 1] probs;
     unsummed = append_row(rep_vector(0.0, 1), theta - beta);
     probs = softmax(cumulative_sum(unsummed));
-    return categorical_lpmf(r | probs);
+    return categorical_lpmf(y + 1 | probs);
   }
   matrix obtain_adjustments(matrix W) {
     real min_w;
@@ -43,27 +43,19 @@ data {
   matrix[J,K] W;                 // person covariate matrix
 }
 transformed data {
-  int r[N];                      // modified response; r = 1, 2, ... m_i + 1
   int m[I];                      // # parameters per item
   int pos[I];                    // first position in beta vector for item
   matrix[2,K] adj;               // values for centering and scaling covariates
   matrix[J,K] W_adj;             // centered and scaled covariates
-
-  for(n in 1:N)
-    r[n] = y[n] + 1;
-
   m = rep_array(0, I);
   for(n in 1:N)
     if(y[n] > m[ii[n]]) m[ii[n]] = y[n];
-
   pos[1] = 1;
   for(i in 2:(I))
     pos[i] = m[i-1] + pos[i-1];
-
   adj = obtain_adjustments(W);
   for(k in 1:K) for(j in 1:J)
       W_adj[j,k] = (W[j,k] - adj[1,k]) / adj[2,k];
-
 }
 parameters {
   vector[sum(m)-1] beta_free;
@@ -82,7 +74,7 @@ model {
   lambda_adj ~ student_t(3, 0, 1);
   sigma ~ exponential(.1);
   for (n in 1:N)
-    target += pcm(r[n], theta[jj[n]],  segment(beta, pos[ii[n]], m[ii[n]]));
+    target += pcm(y[n], theta[jj[n]],  segment(beta, pos[ii[n]], m[ii[n]]));
 }
 generated quantities {
   vector[K] lambda;

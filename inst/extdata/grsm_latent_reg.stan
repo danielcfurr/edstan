@@ -1,10 +1,10 @@
 functions {
-  real rsm(int r, real theta, real beta, vector kappa) {
+  real rsm(int y, real theta, real beta, vector kappa) {
     vector[rows(kappa) + 1] unsummed;
     vector[rows(kappa) + 1] probs;
     unsummed = append_row(rep_vector(0, 1), theta - beta - kappa);
     probs = softmax(cumulative_sum(unsummed));
-    return categorical_lpmf(r | probs);
+    return categorical_lpmf(y + 1 | probs);
   }
   matrix obtain_adjustments(matrix W) {
     real min_w;
@@ -43,19 +43,13 @@ data {
   matrix[J,K] W;                 // person covariate matrix
 }
 transformed data {
-  int r[N];                      // modified response; r in {1 ... m_i + 1}
   int m;                         // # steps
   matrix[2,K] adj;               // values for centering and scaling covariates
   matrix[J,K] W_adj;             // centered and scaled covariates
-
   m = max(y);
-  for(n in 1:N)
-    r[n] = y[n] + 1;
-
   adj = obtain_adjustments(W);
   for(k in 1:K) for(j in 1:J)
       W_adj[j,k] = (W[j,k] - adj[1,k]) / adj[2,k];
-
 }
 parameters {
   vector<lower=0>[I] alpha;
@@ -77,7 +71,7 @@ model {
   theta ~ normal(W_adj*lambda_adj, 1);
   lambda_adj ~ student_t(3, 0, 1);
   for (n in 1:N)
-    target += rsm(r[n], theta[jj[n]] .* alpha[ii[n]], beta[ii[n]], kappa);
+    target += rsm(y[n], theta[jj[n]] .* alpha[ii[n]], beta[ii[n]], kappa);
 }
 generated quantities {
   vector[K] lambda;
