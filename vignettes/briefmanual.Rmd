@@ -307,7 +307,6 @@ The priors for the item parameters are
 $$\alpha \sim \mathrm{lognormal}(1, 1)$$
 $$\beta \sim \mathrm{N}(0, 9)$$
 $$\kappa \sim \mathrm{N}(0, 9)$$
-No prior is placed on the last $\beta_i$, as it is constrained such that the vector $\beta$ has a mean of zero. The same is true regarding the vector $\kappa$.
 
 
 # Writing your own **Stan** models

@@ -31,8 +31,8 @@ transformed parameters {
   kappa[m] = -1*sum(kappa_free);
 }
 model {
-  beta ~ normal(0, 9);
-  kappa_free ~ normal(0, 9);
+  beta ~ normal(0, 3);
+  target += normal_lpdf(kappa | 0, 3);
   theta ~ normal(0, sigma);
   sigma ~ exponential(.1);
   for (n in 1:N)

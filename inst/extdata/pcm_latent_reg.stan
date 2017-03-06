@@ -69,7 +69,7 @@ transformed parameters {
   beta[sum(m)] = -1*sum(beta_free);
 }
 model {
-  beta_free ~ normal(0, 9);
+  target += normal_lpdf(beta | 0, 3);
   theta ~ normal(W_adj*lambda_adj, sigma);
   lambda_adj ~ student_t(3, 0, 1);
   sigma ~ exponential(.1);

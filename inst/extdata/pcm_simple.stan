@@ -26,7 +26,7 @@ parameters {
 }
 model {
   for(i in 1:I)
-    beta[i] ~ normal(0, 9);
+    beta[i] ~ normal(0, 3);
   theta ~ normal(0, sigma);
   sigma ~ exponential(.1);
   for (n in 1:N)
