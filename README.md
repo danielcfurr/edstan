@@ -5,13 +5,13 @@ The **edstan** package for **R** provides convenience functions and pre-programm
 The following table lists the models packaged with **edstan**. Each of these may optionally included a latent regression of ability. The **Stan** code for these models is documented in a series of case studies, linked in the table.
 
 | Model | **Stan** file |
-|--------------------------------------------------------------------------------------------------|-------------------------|
-| [Rasch](http://mc-stan.org/documentation/case-studies/rasch_latent_reg.html)                     | *rasch_latent_reg.stan* |
-| [Partical credit](http://mc-stan.org/documentation/case-studies/pcm_latent_reg.html)             | *pcm_latent_reg.stan*   |
-| [Rating scale](http://mc-stan.org/documentation/case-studies/2pl_latent_reg.html)                | *rsm_latent_reg.stan*   |
-| [Two-parameter logistic](http://mc-stan.org/documentation/case-studies/rsm_latent_reg.html)        | *2pl_latent_reg.stan*   |
-| [Generalized partial credit](http://mc-stan.org/documentation/case-studies/gpcm_latent_reg.html) | *gpcm_latent_reg.stan*  |
-| [Generalized rating scale](http://mc-stan.org/documentation/case-studies/grsm_latent_reg.html)   | *grsm_latent_reg.stan*  |
+|-----------------------------------------------------------------------------------------------|-------------------------|
+| [Rasch](http://mc-stan.org/documentation/case-studies/rasch_and_2pl.html)                     | *rasch_latent_reg.stan* |
+| [Partical credit](http://mc-stan.org/documentation/case-studies/pcm_and_gpcm.html)            | *pcm_latent_reg.stan*   |
+| [Rating scale](http://mc-stan.org/documentation/case-studies/rsm_and_grsm.html)               | *rsm_latent_reg.stan*   |
+| [Two-parameter logistic](http://mc-stan.org/documentation/case-studies/rasch_and_2pl.html)    | *2pl_latent_reg.stan*   |
+| [Generalized partial credit](http://mc-stan.org/documentation/case-studies/pcm_and_gpcm.html) | *gpcm_latent_reg.stan*  |
+| [Generalized rating scale](http://mc-stan.org/documentation/case-studies/rsm_and_grsm.htmll)  | *grsm_latent_reg.stan*  |
 
 The next table lists the functions packaged with **edstan**.
 
