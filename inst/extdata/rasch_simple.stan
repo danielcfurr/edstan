@@ -9,7 +9,7 @@ data {
 parameters {
   vector[I] beta;
   vector[J] theta;
-  real<lower=1> sigma;
+  real<lower=0> sigma;
 }
 model {
   beta ~ normal(0, 3);
