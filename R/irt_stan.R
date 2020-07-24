@@ -4,20 +4,27 @@
 
 
 irt_stan <- function(
-  ii,
-  jj,
+  item,
+  person,
   y,
   varying_slopes = TRUE,
   thresholds = TRUE,
   common_steps = FALSE,
   posterior_replicates = FALSE,
-  covariates = matrix(1, nrow = max(jj), ncol = 1),
+  covariates = NULL,
   prior_alpha = if (varying_slopes) c(0, 1) else c(0, 1),
   prior_beta_base = c(0, 3),
   prior_beta_step = if (thresholds) c(.5, 1) else c(0, 3),
-  prior_lambda = matrix(c(0, 3), nrow = ncol(covariates), ncol = 2, byrow = TRUE),
+  prior_lambda = NULL,
+  return_data_list = FALSE,
   ...
 ) {
+
+  lookup_item <- make_lookup(item)
+  ii <- lookup_item[as.character(item)]
+
+  lookup_person <- make_lookup(person)
+  jj <- lookup_person[as.character(person)]
 
   I <- max(ii)
   J <- max(jj)
@@ -56,6 +63,24 @@ irt_stan <- function(
 
   }
 
+  if (is.null(covariates)) {
+    W <- matrix(1, nrow = J, ncol = 1)
+  } else {
+    W <- covariates
+  }
+
+  if (is.null(prior_lambda) & !is.null(covariates)) {
+    prior_sd <- apply(W, 2, function(x) {
+      if (length(unique(x)) == 1) 5 else sd(x) * 2
+    })
+    prior_mean <- rep(0, times = length(prior_sd))
+    prior_lambda <- cbind(prior_mean, prior_sd)
+  } else if (is.null(prior_lambda)) {
+    prior_lambda = matrix(c(0, 5), nrow = 1, ncol = 2)
+    rownames(prior_lambda) <- "(Intercept)"
+    colnames(prior_lambda) <- c("prior_mean", "prior_sd")
+  }
+
   dl <- list(
     N = N,
     I = I,
@@ -63,8 +88,8 @@ irt_stan <- function(
     ii = ii,
     jj = jj,
     y = y,
-    K = ncol(covariates),
-    W = covariates,
+    K = ncol(W),
+    W = W,
     pos_s = starts,
     pos_e = ends,
     prior_alpha = prior_alpha,
@@ -76,8 +101,32 @@ irt_stan <- function(
     flag_replicates = as.integer(posterior_replicates)
   )
 
-  fit <- rstan::sampling(stanmodels$edstan_model, data = dl, ...)
+  if (return_data_list) {
 
-  return(list(data = dl, fit = fit))
+    return(dl)
+
+  } else {
+
+    fit <- rstan::sampling(
+      stanmodels$edstan_model,
+      data = dl,
+      pars = c("alpha", "beta_base", "beta_step", "lambda", "theta"),
+      algorithm = "NUTS",
+      ...
+    )
+
+    opt_names <- grep("^(pos|prior|flag)_", names(dl), value = TRUE)
+    opts <- lapply(opt_names, function(i) dl[[i]])
+    names(opts) <- opt_names
+    opts$lookup_item <- lookup_item
+    opts$lookup_person <- lookup_person
+    opts$covariates <- colnames(W)
+
+    fit <- as(fit, "edstanfit")
+    fit@edstan_options <- opts
+
+    return(fit)
+
+  }
 
 }

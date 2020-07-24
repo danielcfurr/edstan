@@ -5,18 +5,19 @@
 \title{Fit an IRT model}
 \usage{
 irt_stan(
-  ii,
-  jj,
+  item,
+  person,
   y,
   varying_slopes = TRUE,
   thresholds = TRUE,
   common_steps = FALSE,
   posterior_replicates = FALSE,
-  covariates = matrix(1, nrow = max(jj), ncol = 1),
+  covariates = NULL,
   prior_alpha = if (varying_slopes) c(0, 1) else c(0, 1),
   prior_beta_base = c(0, 3),
   prior_beta_step = if (thresholds) c(0.5, 1) else c(0, 3),
-  prior_lambda = matrix(c(0, 3), nrow = ncol(covariates), ncol = 2, byrow = TRUE),
+  prior_lambda = NULL,
+  return_data_list = FALSE,
   ...
 )
 }
