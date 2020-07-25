@@ -6,15 +6,15 @@
 irt_stan <- function(
   item,
   person,
-  y,
+  response,
   varying_slopes = TRUE,
   thresholds = TRUE,
   common_steps = FALSE,
   posterior_replicates = FALSE,
   covariates = NULL,
-  prior_alpha = if (varying_slopes) c(0, 1) else c(0, 1),
-  prior_beta_base = c(0, 3),
-  prior_beta_step = if (thresholds) c(.5, 1) else c(0, 3),
+  prior_alpha = if (varying_slopes) c(mean=0, sd=1) else c(mean=0, sd=1),
+  prior_beta_base = c(mean=0, sd=3),
+  prior_beta_step = if (thresholds) c(mean=.5, sd=1) else c(mean=0, sd=3),
   prior_lambda = NULL,
   return_data_list = FALSE,
   ...
@@ -28,8 +28,8 @@ irt_stan <- function(
 
   I <- max(ii)
   J <- max(jj)
-  N <- length(y)
-  max_by_item <- tapply(y, ii, max)
+  N <- length(response)
+  max_by_item <- tapply(response, ii, max)
 
   # Number of needed step parameters (not counting base) per item
   m <- ifelse(max_by_item > 0, max_by_item - 1, 0)
@@ -87,7 +87,7 @@ irt_stan <- function(
     J = J,
     ii = ii,
     jj = jj,
-    y = y,
+    y = response,
     K = ncol(W),
     W = W,
     pos_s = starts,
@@ -111,7 +111,6 @@ irt_stan <- function(
       stanmodels$edstan_model,
       data = dl,
       pars = c("alpha", "beta_base", "beta_step", "lambda", "theta"),
-      algorithm = "NUTS",
       ...
     )
 
