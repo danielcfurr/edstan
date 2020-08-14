@@ -64,8 +64,6 @@ setMethod(
 
     tables <- summarize_edstan_fit(x, probs = probs, return_data_frame = FALSE)
 
-    str(tables)
-
     for(n in 1:length(tables)) {
 
       tbl <- tables[[n]]
@@ -181,8 +179,10 @@ summarize_edstan_fit <- function(
   }
 
   a <- extract(fit, permuted = FALSE, ability_pars)
-  a <- monitor(a, warmup = 0, print = FALSE)
-  ability_table <- as.matrix(a)[, c("mean", "se_mean", "sd", "n_eff", "Rhat")]
+  a <- monitor(a, probs = probs, warmup = 0, print = FALSE)
+  quantile_names <- grep("%$", colnames(a), value = TRUE)
+  all_names <- c("mean", "se_mean", "sd", quantile_names, "n_eff", "Rhat")
+  ability_table <- as.matrix(a)[, all_names]
   row.names(ability_table) <- c(alpha_label, lambda_label)
 
   tables <- c(item_tables, "Person distribution" = list(ability_table))

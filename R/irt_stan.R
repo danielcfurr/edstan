@@ -70,7 +70,9 @@ irt_stan <- function(
   }
 
   if (is.null(prior_lambda) & !is.null(covariates)) {
+    # Tell the user they are bad and should feel bad
     prior_sd <- apply(W, 2, function(x) {
+      # If intercept, prior sd = 5, else 2 times the sd
       if (length(unique(x)) == 1) 5 else sd(x) * 2
     })
     prior_mean <- rep(0, times = length(prior_sd))
