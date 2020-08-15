@@ -4,9 +4,10 @@
 
 
 irt_stan <- function(
-  item,
-  person,
-  response,
+  response_matrix = matrix(),
+  item = integer(),
+  person = integer(),
+  response = integer(),
   varying_slopes = TRUE,
   thresholds = TRUE,
   common_steps = FALSE,
@@ -19,6 +20,72 @@ irt_stan <- function(
   return_data_list = FALSE,
   ...
 ) {
+
+  if(identical(response_matrix, matrix())) {
+
+    # Check that all long-form options are provided
+    if(any(identical(response, integer()), identical(item, integer()),
+           identical(person, integer()))) {
+      stop("Options 'response', 'item', and 'person' are all required when response_matrix is not provided.")
+    }
+
+    # Check that all vectors have same length
+    vec_lengths <- lengths(list(response, item, person))
+    if(min(vec_lengths) != max(vec_lengths)) {
+      stop("Vectors 'response', 'item', and 'person' must have the same length.")
+    }
+
+    # Check that there are no NAs
+    if(sum(is.na(c(response, item, person))) > 0) {
+      stop("Vectors 'response', 'item', and 'person' may not include NA.")
+    }
+
+  } else {
+
+    if(!all(response == integer(), item == integer(), person == integer())) {
+      warning("Options 'response', 'item', and 'person' are ignored when response_matrix is provided.")
+    }
+
+    # Assemble responses into a vector of non-missing values
+    not_missing <- as.vector(t(!is.na(response_matrix)))
+    response <- as.vector(t(response_matrix))[not_missing]
+
+    # Assemble item ids into a vector of non-missing values
+    if (is.null(colnames(response_matrix))) {
+      item <- rep(1:ncol(response_matrix), times = nrow(response_matrix))
+    } else {
+      item <- rep(colnames(response_matrix), times = nrow(response_matrix))
+    }
+    item <- item[not_missing]
+
+    # Assemble person ids into a vector of non-missing values
+    if (is.null(rownames(response_matrix))) {
+      person <- rep(1:nrow(response_matrix), each = ncol(response_matrix))
+    } else {
+      person <- rep(rownames(response_matrix), each = ncol(response_matrix))
+    }
+    person <- person[not_missing]
+
+  }
+
+  # Further checks on inputs
+
+  min_scores <- tapply(response, item, min)
+  max_scores <- tapply(response, item, max)
+  n_cats <- tapply(response, item, function(x) length(unique(x)))
+
+  if (any(min_scores > 0)) {
+    warning(sum(min_scores > 0), " items have lowest response greater than zero. This may be okay if expected.")
+  }
+
+  if (any(n_cats == 1)) {
+    warning(sum(n_cats > 0), " items have only one used response category. This may be okay if expected.")
+  }
+
+  missing_intermediate_cats <- max_scores - min_scores + 1 < n_cats
+  if (any(missing_intermediate_cats)) {
+    warning(sum(missing_intermediate_cats), " items have unused intermediate categories. This may be okay if expected.")
+  }
 
   lookup_item <- make_lookup(item)
   ii <- lookup_item[as.character(item)]
@@ -70,7 +137,7 @@ irt_stan <- function(
   }
 
   if (is.null(prior_lambda) & !is.null(covariates)) {
-    # Tell the user they are bad and should feel bad
+    warning("Default priors are used for the latent regression coefficients. These may be terrible, especially for the intercept term.")
     prior_sd <- apply(W, 2, function(x) {
       # If intercept, prior sd = 5, else 2 times the sd
       if (length(unique(x)) == 1) 5 else sd(x) * 2

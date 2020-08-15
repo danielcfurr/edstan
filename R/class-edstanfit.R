@@ -115,7 +115,9 @@ summarize_edstan_fit <- function(
   start <- fit@edstan_options$pos_s
   end <- fit@edstan_options$pos_e
   beta_base <- extract(fit, permuted = FALSE, pars = "beta_base")
-  beta_step <- extract(fit, permuted = FALSE, pars = "beta_step")
+  if (sum(end) > 0) {
+    beta_step <- extract(fit, permuted = FALSE, pars = "beta_step")
+  }
   alpha <- extract(fit, permuted = FALSE, pars = "alpha")
 
   beta_label <- if (fit@edstan_options$flag_thresholds) "Thresh" else "Step"
@@ -126,11 +128,14 @@ summarize_edstan_fit <- function(
 
     labels <- paste(beta_label, 1)
 
-    if (start[i] > 0) {
+    if (end[i] > 0) {
       difficulty_steps <- beta_step[,,start[i]:end[i],drop = FALSE]
       difficulties <- array(c(difficulty_base, difficulty_steps),
                             dim = dim(difficulty_steps) + c(0, 0, 1))
       labels <- c(labels, paste(beta_label, 2:dim(difficulties)[3]))
+    } else {
+      difficulties <- difficulty_base
+      labels <- labels
     }
 
     if (fit@edstan_options$flag_thresholds) {

@@ -5,9 +5,10 @@
 \title{Fit an IRT model}
 \usage{
 irt_stan(
-  item,
-  person,
-  response,
+  response_matrix = matrix(),
+  item = integer(),
+  person = integer(),
+  response = integer(),
   varying_slopes = TRUE,
   thresholds = TRUE,
   common_steps = FALSE,
