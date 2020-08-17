@@ -82,9 +82,8 @@ irt_stan <- function(
     warning(sum(n_cats > 0), " items have only one used response category. This may be okay if expected.")
   }
 
-  missing_intermediate_cats <- max_scores - min_scores + 1 < n_cats
-  if (any(missing_intermediate_cats)) {
-    warning(sum(missing_intermediate_cats), " items have unused intermediate categories. This may be okay if expected.")
+  if (any(n_cats < max_scores + 1)) {
+    warning(sum(n_cats < max_scores + 1), " items have unused response categories. This may be okay if expected.")
   }
 
   lookup_item <- make_lookup(item)
@@ -96,10 +95,10 @@ irt_stan <- function(
   I <- max(ii)
   J <- max(jj)
   N <- length(response)
-  max_by_item <- tapply(response, ii, max)
+  max_scores <- tapply(response, ii, max)
 
   # Number of needed step parameters (not counting base) per item
-  m <- ifelse(max_by_item > 0, max_by_item - 1, 0)
+  m <- ifelse(max_scores > 0, max_scores - 1, 0)
 
   if (common_steps) {
 
@@ -134,6 +133,10 @@ irt_stan <- function(
     W <- matrix(1, nrow = J, ncol = 1)
   } else {
     W <- covariates
+  }
+
+  if (nrow(W) != J) {
+    stop("Number of rows in person covariate matrix must match the number of persons.")
   }
 
   if (is.null(prior_lambda) & !is.null(covariates)) {
@@ -179,7 +182,7 @@ irt_stan <- function(
     fit <- rstan::sampling(
       stanmodels$edstan_model,
       data = dl,
-      pars = c("alpha", "beta_base", "beta_step", "lambda", "theta"),
+      pars = c("alpha", "beta_base", "beta_step", "lambda", "theta", "lp__"),
       ...
     )
 

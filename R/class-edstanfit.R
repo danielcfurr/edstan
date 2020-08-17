@@ -128,6 +128,7 @@ summarize_edstan_fit <- function(
 
     labels <- paste(beta_label, 1)
 
+    # If end[i] == 0 then item is binary
     if (end[i] > 0) {
       difficulty_steps <- beta_step[,,start[i]:end[i],drop = FALSE]
       difficulties <- array(c(difficulty_base, difficulty_steps),
@@ -138,7 +139,8 @@ summarize_edstan_fit <- function(
       labels <- labels
     }
 
-    if (fit@edstan_options$flag_thresholds) {
+    # If end[i] == 0 then item is binary
+    if (fit@edstan_options$flag_thresholds & end[i] > 0) {
       difficulties <- aperm(apply(difficulties, 1:2, cumsum), c(2, 3, 1))
     }
 
