@@ -11,7 +11,7 @@ Description: Provides convenience functions and pre-programmed Stan models
 License: BSD_3_clause + file LICENSE
 Depends: R (>= 3.0.2), rstan (>= 2.10)
 Imports: ggplot2
-Suggests: knitr, rmarkdown
+Suggests: knitr, rmarkdown, testthat
 VignetteBuilder: knitr
 LazyData: true
 RoxygenNote: 5.0.1
