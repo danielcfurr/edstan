@@ -16,21 +16,18 @@ data {
   array[N] int<lower=0> y; // response for n; y = 0, 1 ... m_i
 }
 transformed data {
-  int m; // # parameters per item (same for all items)
-  m = max(y);
+  int m = max(y); // # parameters per item (same for all items)
 }
 parameters {
-  array[I] vector[m] beta;
+  matrix[m, I] beta;
   vector[J] theta;
   real<lower=0> sigma;
 }
 model {
-  for (i in 1 : I) {
-    beta[i] ~ normal(0, 3);
-  }
+  to_vector(beta)  ~ normal(0, 3);
   theta ~ normal(0, sigma);
   sigma ~ exponential(.1);
   for (n in 1 : N) {
-    target += pcm(y[n], theta[jj[n]], beta[ii[n]]);
+    target += pcm(y[n], theta[jj[n]], beta[,ii[n]]);
   }
 }
