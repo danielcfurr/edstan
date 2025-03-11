@@ -41,7 +41,7 @@ model {
   beta ~ normal(0, 3);
   theta ~ normal(W * lambda, sigma);
   lambda ~ student_t(7, 0, 2.5);
-  sigma ~ exponential(.1);
+  sigma ~ gamma(2, 1);
   for (n in 1 : N) {
     target += pcm(y[n], theta[jj[n]], segment(beta, pos[ii[n]], m[ii[n]]));
   }

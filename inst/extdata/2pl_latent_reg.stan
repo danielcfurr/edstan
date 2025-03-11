@@ -15,7 +15,7 @@ parameters {
   vector[K] lambda;
 }
 model {
-  alpha ~ lognormal(1, 1);
+  alpha ~ lognormal(.5, 1);
   beta ~ normal(0, 3);
   lambda ~ student_t(7, 0, 2.5);
   theta ~ normal(W * lambda, 1);

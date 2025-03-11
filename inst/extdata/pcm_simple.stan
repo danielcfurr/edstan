@@ -26,7 +26,7 @@ parameters {
 model {
   to_vector(beta)  ~ normal(0, 3);
   theta ~ normal(0, sigma);
-  sigma ~ exponential(.1);
+  sigma ~ gamma(2, 1);
   for (n in 1 : N) {
     target += pcm(y[n], theta[jj[n]], beta[,ii[n]]);
   }
