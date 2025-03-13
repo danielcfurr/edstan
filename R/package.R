@@ -1,0 +1,40 @@
+#' Stan for item response theory
+#'
+#' \pkg{edstan} attempts to make easy the fitting of standard item response
+#' theory models using \pkg{rstan}.
+#'
+#' A user will generally want to use the following functions (in order) to fit
+#' a model:
+#'
+#' \enumerate{
+#'   \item \code{\link{irt_data}} to format the data,
+#'   \item \code{\link{irt_stan}} to fit a model, and
+#'   \item \code{\link{print_irt_stan}} to view some results.
+#' }
+#'
+#' Additionally, \code{\link{labelled_integer}} is some times helpful for data
+#' formatting and \code{\link{stan_columns_plot}} creates a plots of convergence
+#' and other statistics by parameter vector. The package also includes six Stan
+#' models (see \code{\link{irt_stan}} for a list) and two example datasets
+#' (\code{\link{aggression}} and \code{\link{spelling}}).
+#'
+#' It is expected that once a user is comfortable fitting pre-defined
+#' \pkg{edstan} models, they will write their own Stan models and fit them with
+#' \code{\link[rstan]{stan}}, for which \code{\link{irt_stan}} is a wrapper.
+#'
+#' @seealso Case studies for each of the \pkg{edstan} models have been published.
+#'
+#' Rasch and two-parameter logistic models
+#'
+#' \url{http://mc-stan.org/documentation/case-studies/rasch_and_2pl.html}
+#'
+#' (Generalized) partial credit model
+#'
+#' \url{http://mc-stan.org/documentation/case-studies/pcm_and_gpcm.html}
+#'
+#' (Generalized) rating scale model
+#'
+#' \url{http://mc-stan.org/documentation/case-studies/rsm_and_grsm.html}
+#' @import rstan
+"_PACKAGE"
+#> [1] "_PACKAGE"
