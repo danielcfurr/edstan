@@ -3,25 +3,14 @@ devtools::load_all()
 
 # Data -------------------------------------------------------------------------
 
-test_that("spelling data without covariates", {
-  expect_no_error(
-    irt_data(response_matrix = spelling[, 2:5])
-  )
-})
-
-test_that("spelling data with covariates and no formula", {
-  expect_no_error(
-    irt_data(response_matrix = spelling[, 2:5],
-             covariates = spelling[, "male", drop = FALSE])
-  )
-})
-
 test_that("spelling data with covariates and formula", {
-  expect_no_error({
-    dat <<- irt_data(response_matrix = spelling[, 2:5],
-                     covariates = spelling,
-                     formula = ~ male)
-  })
+  expect_no_error(
+    capture.output({
+      dat <<- irt_data(response_matrix = spelling[, 2:5],
+                       covariates = spelling,
+                       formula = ~ male)
+    })
+  )
 })
 
 

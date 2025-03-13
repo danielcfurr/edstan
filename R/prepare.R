@@ -35,6 +35,13 @@
 #'   interpretable as the mean of the person distribution. If set to
 #'   \code{NULL}, then \code{covariates} is used directly  as the design matrix
 #'   for the latent regression.
+#' @param integerize Whether to apply \code{\link{labelled_integer}} to
+#'   \code{ii} and \code{jj}. Defaults to \code{TRUE} and should be used
+#'   unless in the inputs are already consecutive integers.
+#' @param validate_regression Whether to check the latent regression
+#'   equation and covariates for compatibility with the prior distributions
+#'   for the coefficients. Defaults to \code{TRUE} and throws a warning
+#'   if problems are identified.
 #' @return A data list suitable for \code{\link{irt_stan}}.
 #' @seealso See \code{\link{labelled_integer}} for a means of creating
 #' appropriate inputs for \code{ii} and \code{jj}.
@@ -64,10 +71,13 @@
 #'                        formula = ~ 1 + male*anger)
 #' @export
 irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
-                     jj = integer(), covariates = data.frame(), formula = ~1) {
+                     jj = integer(), covariates = data.frame(), formula = NULL,
+                     integerize = TRUE, validate_regression = TRUE) {
 
-  # If response matrix is provided...
-  if(!identical(response_matrix, matrix())) {
+  long_format <- identical(response_matrix, matrix())
+
+  if(!long_format) {
+    # If response matrix is provided...
 
     if(!all(y == integer(), ii == integer(), jj == integer())) {
       warning("Options 'y', 'ii', and 'jj' are ignored when response_matrix is provided.")
@@ -89,9 +99,8 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
     jj_expand <- rep(jj_unique, each = ncol(response_matrix))
     jj <- jj_expand[not_missing]
 
-
-    # If response matrix is NOT provided...
   } else {
+    # If response matrix is NOT provided...
 
     # Check that all long-form options are provided
     if(any(identical(y, integer()), identical(ii, integer()),
@@ -108,6 +117,12 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
     # Check that there are no NAs
     if(sum(is.na(c(y, ii, jj))) > 0) {
       stop("'y', 'ii', and 'jj' may not include NA.")
+    }
+
+    # Apply labelled_integer() if specified
+    if (integerize) {
+      ii <- labelled_integer(ii)
+      jj <- labelled_integer(jj)
     }
 
     # Check that ii and jj are consecutive integers
@@ -131,39 +146,54 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
   max_y <- tapply(y, ii, max)
   lu_y <- tapply(y, ii, function(x) length(unique(x)))
   if(any(min_y != 0)) {
-    warning("One or more items have a minimum score not equal to zero. This ",
-            "is may be okay for rating scale models.")
+    warning("One or more items have a minimum score not equal to zero.")
   }
   if(any(max_y + 1 != lu_y)) {
-    warning("One or more items have missing response categories. This is may ",
-            "be okay for rating scale models.")
+    warning("One or more items have unused response categories.")
   }
 
-  # If 'formula' set to NULL, use 'covariates' as is. If 'covariates' not
-  # provided, set to be constant only. Otherwise, if nrow(covariates) equals
-  # number of persons, apply formula to it. Or if nrow(covariates) equals
-  # number of total responses, shorten it and then apply formula.
-  if(is.null(formula)) {
-    W <- covariates
-  } else if(identical(covariates, data.frame())) {
-    W <- matrix(1, ncol = 1, nrow = max(jj))
+  # Construct a formula and/or covariate data frame if not provided
+  if(!identical(covariates, data.frame()) & !is.null(formula)) {
+    # If covariates and formula are both provided
+    # Pass
+  } else if (!identical(covariates, data.frame())) {
+    # If only covariates
+    formula <- ~ .
+  } else if (!is.null(formula)) {
+    # If only formula
+    stop("Error: 'covariates' must be specified when formula is provided.")
+  } else if (long_format) {
+    # If neither provided and using long format data
+    covariates <- data.frame(meh = rep(1, times = length(jj)))
+    formula <- ~ 1
   } else {
-    if(nrow(covariates) == max(jj)) {
-      W <- stats::model.matrix(formula, covariates)
-    } else if(nrow(covariates) == length(jj)) {
-      W <- stats::model.matrix(formula, covariates[!duplicated(jj),])
-    } else {
+    # If neither provided and using wide format data
+    covariates <- data.frame(meh = rep(1, times = max(jj)))
+    formula <- ~ 1
+  }
+
+  # Validate row count of covariates
+  if (long_format) {
+    if (nrow(covariates) == length(jj)) {
+      # If long form data and have the correct number of covariate rows
+      covariates <- covariates[!duplicated(jj),]
+    } else  {
+      # If long form data and the wrong number of rows
       stop("The 'covariates' must have a number of rows equal to the ",
-           "number of persons or to the length of 'jj'. If 'covariates' has ",
-           "multiple rows per person (as with long-form data), all of them ",
-           "must be identical.")
+           "the length of 'jj' for long format data.")
     }
   }
-  if(!all(W[,1] == 1)) {
-    stop("The person covariate matrix must have a first column with all ",
-         "elements set to one. If you supplied a formula, the intercept term ",
-         "cannot be omitted. If you did not supply a formula, the first ",
-         "column of 'covariates' must have all elements set to one.")
+  else if (nrow(covariates) != max(jj)) {
+    # If wide form data and the wrong number of rows
+    stop("The 'covariates' must have a number of rows equal to the ",
+         "number of persons for wide format data.")
+  }
+
+  # Apply the formula to the covariates, validating if requested
+  if (validate_regression) {
+    W <- .validate_regression_model(formula, covariates)
+  } else {
+    W <- model.matrix(formula, covariates)
   }
 
   data_list <- list(N = length(y), I = max(ii), J = max(jj), ii = ii, jj = jj,
@@ -198,4 +228,125 @@ labelled_integer <- function(x = vector()) {
   x_integer <- match(x, unique(x))
   names(x_integer) <- as.character(x)
   return(x_integer)
+}
+
+
+.validate_binary <- function(x, nm) {
+  x_mean <- mean(x)
+  x_range <- max(x) - min(x)
+  issues <- c()
+
+  if (all.equal(0, x_mean, tolerance = .01) != TRUE) {
+    text <- paste(nm, ": binary covariate has mean of",
+                  sprintf("%0.3f", x_mean), "rather than 0")
+    issues <- append(issues, c(text))
+  }
+
+  if (all.equal(1, x_range, tolerance = .01) != TRUE) {
+    text <- paste(nm, ": binary covariate has range of",
+                  sprintf("%0.3f", x_range), "rather than 1")
+    issues <- append(issues, c(text))
+  }
+
+  return(issues)
+
+}
+
+
+.validate_continuous <- function(x, nm) {
+  x_mean <- mean(x)
+  x_sd <- sd(x)
+  issues <- c()
+
+  if (all.equal(0, x_mean, tolerance = .01) != TRUE) {
+    text <- paste(nm, ": continuous covariate has mean of",
+                  sprintf("%0.3f", x_mean), "rather than 0")
+    issues <- append(issues, c(text))
+  }
+
+  if (all.equal(.5, x_sd, tolerance = .01) != TRUE) {
+    text <- paste(nm, ": continuous covariate has SD of",
+                  sprintf("%0.3f", x_sd), "rather than .5")
+    issues <- append(issues, c(text))
+  }
+
+  return(issues)
+
+}
+
+
+.validate_regression_model <- function(formula, data) {
+  mm <- model.matrix(formula, data)
+  model_terms <- terms(formula, data = data)
+
+  issues <- c()
+
+  if (attr(model_terms, "intercept") == 0) {
+    issues <- append(issues, c("formula does not include an intercept term"))
+  }
+
+  not_interactions <- which(attr(model_terms, "order")  == 1)
+  columns_to_inspect <- which(attr(mm, "assign") %in% not_interactions)
+
+  for (i in columns_to_inspect) {
+    cname <- colnames(mm)[i]
+    x <- mm[, i]
+    u <- length(unique(x))
+
+    if (u == 1) {
+      issues <- append(issues, c(paste0(cname, "is constant")))
+    } else if (u == 2) {
+      issues <- append(issues, .validate_binary(x, cname))
+    } else {
+      issues <- append(issues, .validate_continuous(x, cname))
+    }
+
+  }
+
+  if (length(issues)) {
+    message("Potential scaling problems were observed for the covariates:")
+
+    message(paste(
+      paste("  -", issues),
+      collapse = "\n"
+    ))
+
+    message(paste(
+      "Recommendations for scaling appropriately with the coefficent priors:",
+      "  - An intercept term should be included in the regression",
+      "  - Continuous covariates should have a mean of 0 and SD of .5",
+      "  - Binary covariates should have a mean of 0 and range (max minus min) of 1",
+      "  - Other scalings may be sensible but cannot be validated with this function",
+      sep = "\n"
+    ))
+
+    warning("Rescaling the regression covariates may be appropriate")
+
+  }
+
+  return(mm)
+
+}
+
+rescale_continuous <- function(x) {
+  f <- function(y) (y - mean(y)) / sd(y) / 2
+  d <- length(dim(x))
+  if (is.vector(x)) {
+    return(f(x))
+  } else if (length(dim(x)) == 2) {
+    return(apply(x, 2, f))
+  } else {
+    stop("Error: Input must be a vector, matrix, or data frame.")
+  }
+}
+
+rescale_binary <- function(x) {
+  f <- function(y)  (y - mean(y)) / (max(y) - min(y))
+  if (is.vector(x)) {
+    return(f(x))
+  } else if (length(dim(x)) == 2) {
+    return(apply(x, 2, f))
+  } else {
+    stop("Error: Input must be a vector, matrix, or data frame.")
+  }
 }

@@ -9,7 +9,8 @@ test_that("verbal aggression data with covariates and formula", {
                      ii = labelled_integer(aggression$description),
                      jj = aggression$person,
                      covariates = aggression,
-                     formula = ~ 1 + male*anger)
+                     formula = ~ 1 + male*anger,
+                     validate_regression = FALSE)
   })
 })
 
