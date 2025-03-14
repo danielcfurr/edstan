@@ -172,21 +172,16 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
     formula <- ~ 1
   }
 
-  # Validate row count of covariates
+  # If long form data, reduce covariates to one row per person
   if (long_format) {
-    if (nrow(covariates) == length(jj)) {
-      # If long form data and have the correct number of covariate rows
-      covariates <- covariates[!duplicated(jj),]
-    } else  {
-      # If long form data and the wrong number of rows
-      stop("The 'covariates' must have a number of rows equal to the ",
-           "the length of 'jj' for long format data.")
-    }
+    covariates <- .long_format_covariates(covariates, jj)
   }
-  else if (nrow(covariates) != max(jj)) {
-    # If wide form data and the wrong number of rows
+
+  # Check that covariates have expected number of rows
+  if (nrow(covariates) != max(jj)) {
     stop("The 'covariates' must have a number of rows equal to the ",
-         "number of persons for wide format data.")
+         "number of persons for wide format data. For long format data,",
+         "the covariates should have a row count equal the length of 'y'")
   }
 
   # Apply the formula to the covariates, validating if requested
@@ -231,6 +226,92 @@ labelled_integer <- function(x = vector()) {
 }
 
 
+#' Rescale continuous covariates as appropriate for edstan models
+#'
+#' @param x A numeric vector, matrix, or data frame
+#' @return A numeric vector, matrix, or data frame with rescaled covariates
+#'   having mean of zero and standard deviation of 0.5.
+#' @examples
+#' vec <- rnorm(5, 100, 20)
+#' rescale_continuous(vec)
+#'
+#' mat <- matrix(rnorm(5*5, 100, 20), ncol = 5)
+#' rescale_continuous(mat)
+#' @export
+rescale_continuous <- function(x) {
+  f <- function(y) (y - mean(y)) / sd(y) / 2
+  d <- length(dim(x))
+  if (is.vector(x)) {
+    return(f(x))
+  } else if (length(dim(x)) == 2) {
+    return(apply(x, 2, f))
+  } else {
+    stop("Error: Input must be a vector, matrix, or data frame.")
+  }
+}
+
+
+#' Rescale binary covariates as appropriate for edstan models
+#'
+#' @param x A numeric vector, matrix, or data frame
+#' @return A numeric vector, matrix, or data frame with rescaled covariates
+#'   having mean of zero and range (maximum - minimum) of one.
+#' @examples
+#' vec <- c(1, 3, 1, 3, 1)
+#' rescale_binary(vec)
+#'
+#' mat <- matrix(c(1, 3, 1, 3, 1), nrow = 5, ncol = 5)
+#' rescale_binary(mat)
+#' @export
+rescale_binary <- function(x) {
+  f <- function(y)  (y - mean(y)) / (max(y) - min(y))
+  if (is.vector(x)) {
+    return(f(x))
+  } else if (length(dim(x)) == 2) {
+    return(apply(x, 2, f))
+  } else {
+    stop("Error: Input must be a vector, matrix, or data frame.")
+  }
+}
+
+
+#' Convert covariate data frame for long format data
+#'
+#' Intended for internal use only.
+#'
+#' @param covariates A data frame containing covariates.
+#' @param jj Index for person associated with each row.
+#' @param not_missing Boolean for whether each row is associated with a missing
+#'   item response.
+#' @return A data frame with one row per person.
+#' @keywords internal
+.long_format_covariates <- function(covariates, jj) {
+  n_persons <- length(unique(jj))
+  n_responses <- length(jj)
+
+  split_df <- split(covariates, jj)
+  unique_rows_by_person <- all(sapply(split_df, function(x) nrow(unique(x))))
+
+  if (any(unique_rows_by_person > 1)) {
+    stop("Error: For long format data, all 'covariate' rows for each person",
+         "must be identical.")
+  }
+
+  covariates <- covariates[!duplicated(jj), ]
+
+  return(covariates)
+
+}
+
+
+#' Validate a boolean covariate
+#'
+#' Intended for internal use only.
+#'
+#' @param x A vector of covariate values.
+#' @param nm Name for the covariate.
+#' @return A character vector of identified issues.
+#' @keywords internal
 .validate_binary <- function(x, nm) {
   x_mean <- mean(x)
   x_range <- max(x) - min(x)
@@ -253,6 +334,14 @@ labelled_integer <- function(x = vector()) {
 }
 
 
+#' Validate a continuous covariate
+#'
+#' Intended for internal use only.
+#'
+#' @param x A vector of covariate values.
+#' @param nm Name for the covariate.
+#' @return A character vector of identified issues.
+#' @keywords internal
 .validate_continuous <- function(x, nm) {
   x_mean <- mean(x)
   x_sd <- sd(x)
@@ -275,9 +364,22 @@ labelled_integer <- function(x = vector()) {
 }
 
 
+#' Validate formula and covariate data
+#'
+#' Intended for internal use only.
+#'
+#' @param formula A formula for the latent regression.
+#' @param data A data frame of covariates.
+#' @return A character vector of identified issues.
+#' @keywords internal
 .validate_regression_model <- function(formula, data) {
   mm <- model.matrix(formula, data)
   model_terms <- terms(formula, data = data)
+
+  # Check for missing values
+  if (sum(is.na(mm))) {
+    stop("Error: The 'covariates' must not contain NA values.")
+  }
 
   issues <- c()
 
@@ -326,27 +428,4 @@ labelled_integer <- function(x = vector()) {
 
   return(mm)
 
-}
-
-rescale_continuous <- function(x) {
-  f <- function(y) (y - mean(y)) / sd(y) / 2
-  d <- length(dim(x))
-  if (is.vector(x)) {
-    return(f(x))
-  } else if (length(dim(x)) == 2) {
-    return(apply(x, 2, f))
-  } else {
-    stop("Error: Input must be a vector, matrix, or data frame.")
-  }
-}
-
-rescale_binary <- function(x) {
-  f <- function(y)  (y - mean(y)) / (max(y) - min(y))
-  if (is.vector(x)) {
-    return(f(x))
-  } else if (length(dim(x)) == 2) {
-    return(apply(x, 2, f))
-  } else {
-    stop("Error: Input must be a vector, matrix, or data frame.")
-  }
 }

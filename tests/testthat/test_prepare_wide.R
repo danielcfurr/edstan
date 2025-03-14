@@ -1,3 +1,5 @@
+devtools::load_all()
+
 # Response matrices ------------------------------------------------------------
 
 test_that("wide data basic response matrix", {

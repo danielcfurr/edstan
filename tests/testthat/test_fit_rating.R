@@ -6,7 +6,7 @@ devtools::load_all()
 test_that("verbal aggression data with covariates and formula", {
   expect_no_error({
     dat <<- irt_data(y = aggression$poly,
-                     ii = labelled_integer(aggression$description),
+                     ii = aggression$description,
                      jj = aggression$person,
                      covariates = aggression,
                      formula = ~ 1 + male*anger,

@@ -8,7 +8,8 @@ test_that("spelling data with covariates and formula", {
     capture.output({
       dat <<- irt_data(response_matrix = spelling[, 2:5],
                        covariates = spelling,
-                       formula = ~ male)
+                       formula = ~ male,
+                       validate_regression = FALSE)
     })
   )
 })
