@@ -1,6 +1,6 @@
 devtools::load_all()
 
-# Response matrices ------------------------------------------------------------
+# Response matrices without latent regression ----------------------------------
 
 test_that("wide data basic response matrix", {
   expect_no_warning(
@@ -8,7 +8,7 @@ test_that("wide data basic response matrix", {
   )
 })
 
-test_that("wide data response matrix with NA", {
+test_that("wide data response matrix with NAs", {
   expect_warning(
     irt_data(response_matrix =  matrix(c(0, NA, 2), nrow=10, ncol=3))
   )

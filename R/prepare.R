@@ -286,18 +286,18 @@ rescale_binary <- function(x) {
 #' @return A data frame with one row per person.
 #' @keywords internal
 .long_format_covariates <- function(covariates, jj) {
-  n_persons <- length(unique(jj))
+  n_persons <- max(jj)
   n_responses <- length(jj)
 
   split_df <- split(covariates, jj)
-  unique_rows_by_person <- all(sapply(split_df, function(x) nrow(unique(x))))
+  unique_rows_by_person <- sapply(split_df, function(x) nrow(unique(x)))
 
   if (any(unique_rows_by_person > 1)) {
     stop("Error: For long format data, all 'covariate' rows for each person",
          "must be identical.")
   }
 
-  covariates <- covariates[!duplicated(jj), ]
+  covariates <- covariates[!duplicated(jj), , drop=FALSE]
 
   return(covariates)
 
