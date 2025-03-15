@@ -105,7 +105,8 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
     # Check that all long-form options are provided
     if(any(identical(y, integer()), identical(ii, integer()),
            identical(jj, integer()))) {
-      stop("Options 'y', 'ii', and 'jj' are all required when response_matrix is not provided.")
+      stop("Options 'y', 'ii', and 'jj' are all required when response_matrix ",
+           "is not provided.")
     }
 
     # Check that all vectors have same length
@@ -174,13 +175,13 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
 
   # If long form data, reduce covariates to one row per person
   if (long_format) {
-    covariates <- .long_format_covariates(covariates, jj)
+    covariates <- .long_format_covariates(covariates, jj, formula)
   }
 
   # Check that covariates have expected number of rows
   if (nrow(covariates) != max(jj)) {
     stop("The 'covariates' must have a number of rows equal to the ",
-         "number of persons for wide format data. For long format data,",
+         "number of persons for wide format data. For long format data, ",
          "the covariates should have a row count equal the length of 'y'")
   }
 
@@ -285,15 +286,14 @@ rescale_binary <- function(x) {
 #'   item response.
 #' @return A data frame with one row per person.
 #' @keywords internal
-.long_format_covariates <- function(covariates, jj) {
-  n_persons <- max(jj)
-  n_responses <- length(jj)
+.long_format_covariates <- function(covariates, jj, formula) {
 
-  split_df <- split(covariates, jj)
+  mm <- model.matrix(formula, covariates)
+  split_df <- split(as.data.frame(mm), jj)
   unique_rows_by_person <- sapply(split_df, function(x) nrow(unique(x)))
 
   if (any(unique_rows_by_person > 1)) {
-    stop("Error: For long format data, all 'covariate' rows for each person",
+    stop("Error: For long format data, all 'covariate' rows for each person ",
          "must be identical.")
   }
 
@@ -377,7 +377,7 @@ rescale_binary <- function(x) {
   model_terms <- terms(formula, data = data)
 
   # Check for missing values
-  if (sum(is.na(mm))) {
+  if (any(is.na(mm))) {
     stop("Error: The 'covariates' must not contain NA values.")
   }
 

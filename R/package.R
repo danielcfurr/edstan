@@ -22,19 +22,6 @@
 #' \pkg{edstan} models, they will write their own Stan models and fit them with
 #' \code{\link[rstan]{stan}}, for which \code{\link{irt_stan}} is a wrapper.
 #'
-#' @seealso Case studies for each of the \pkg{edstan} models have been published.
-#'
-#' Rasch and two-parameter logistic models
-#'
-#' \url{http://mc-stan.org/documentation/case-studies/rasch_and_2pl.html}
-#'
-#' (Generalized) partial credit model
-#'
-#' \url{http://mc-stan.org/documentation/case-studies/pcm_and_gpcm.html}
-#'
-#' (Generalized) rating scale model
-#'
-#' \url{http://mc-stan.org/documentation/case-studies/rsm_and_grsm.html}
 #' @import rstan
 "_PACKAGE"
 #> [1] "_PACKAGE"

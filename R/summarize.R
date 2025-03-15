@@ -145,3 +145,29 @@ stan_columns_plot <- function(fit, stat = "Rhat", ...) {
     ggplot2::ylab(stat)
 
 }
+
+
+#' Read and print the code for an edstan model
+#'
+#' This function reads a file from the `inst/extdata/` directory of the package,
+#' returning its contents invisibly while optionally printing them.
+#'
+#' @param filename The name of the stan file.
+#' @param print Whether to print the stan file contents. Default is `TRUE`.
+#' @return Invisibly returns a character vector of the stan file contents.
+#' @export
+edstan_model_code <- function(filename, print = TRUE) {
+  file_path <- system.file("extdata", filename, package = "edstan")
+
+  if (file_path == "") {
+    stop("File not found in inst/extdata/: ", filename)
+  }
+
+  contents <- readLines(file_path, warn = FALSE)
+
+  if (print) cat(contents, sep = "\n")
+
+  invisible(contents)
+
+}
+

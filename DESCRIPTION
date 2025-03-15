@@ -1,17 +1,18 @@
 Package: edstan
 Type: Package
 Title: Stan Models for Item Response Theory
-Version: 1.0.7
-Date: 2017-03-06
+Version: 1.1.0
+Date: 2025-03-30
 Author: Daniel C. Furr
-Maintainer: Daniel C. Furr <danielcfurr@berkeley.edu>
+Maintainer: Daniel C. Furr <danielcfurr@gmail.com>
 Description: Provides convenience functions and pre-programmed Stan models
     related to item response theory. Its purpose is to make fitting
     common item response theory models using Stan easy.
 License: BSD_3_clause + file LICENSE
-Depends: R (>= 3.0.2), rstan (>= 2.10)
+Depends: R, rstan (>= 2.36)
 Imports: ggplot2
 Suggests: knitr, rmarkdown, testthat
 VignetteBuilder: knitr
 LazyData: true
-RoxygenNote: 5.0.1
+RoxygenNote: 7.3.2
+Encoding: UTF-8
