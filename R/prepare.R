@@ -1,5 +1,7 @@
 #' Create a Stan data list from an item response matrix or from long-form data.
 #'
+#' This function creates a list formatted for use with the edstan models.
+#'
 #' @param response_matrix An item response matrix.
 #'   Columns represent items and rows represent persons.
 #'   NA may be supplied for missing responses.
@@ -10,7 +12,7 @@
 #' @param y A vector of scored responses for long-form data.
 #'   The lowest score for each item should be 0, with exception to rating scale
 #'   models.
-#'   NAs are not permitted, but missing responses may simply be ommitted
+#'   NAs are not permitted, but missing responses may simply be omitted
 #'   instead.
 #'   Required if \code{response_matrix} is not supplied.
 #' @param ii A vector indexing the items in \code{y}.
@@ -32,12 +34,12 @@
 #' @param formula An optional formula for the latent regression that is applied
 #'   to \code{covariates}. The left side  should be blank (for example,
 #'   \code{~ v1 + v2}). By default it includes only a model intercept,
-#'   interpretable as the mean of the person distribution. If set to
-#'   \code{NULL}, then \code{covariates} is used directly  as the design matrix
-#'   for the latent regression.
+#'   which then represents the mean of the person distribution. If set to
+#'   \code{NULL} (default), then \code{covariates} is used directly as the
+#'   design matrix for the latent regression.
 #' @param integerize Whether to apply \code{\link{labelled_integer}} to
-#'   \code{ii} and \code{jj}. Defaults to \code{TRUE} and should be used
-#'   unless in the inputs are already consecutive integers.
+#'   \code{ii} and \code{jj}. Defaults to \code{TRUE}, which should be the case
+#'   unless the inputs are already consecutive integers.
 #' @param validate_regression Whether to check the latent regression
 #'   equation and covariates for compatibility with the prior distributions
 #'   for the coefficients. Defaults to \code{TRUE} and throws a warning
@@ -202,6 +204,10 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
 
 #' Transform a vector into consecutive integers
 #'
+#' This takes vector and transforms it into a vector of consecutive integers,
+#' which has a lowest value of one, a maximum value equal to the number of
+#' unique values, and no gaps.
+#'
 #' @param x A vector, which may be numeric, string, or factor.
 #' @return A vector of integers corresponding to entries in \code{x}.
 #'   The lowest value will be 1, and the greatest value will equal the number of
@@ -229,6 +235,9 @@ labelled_integer <- function(x = vector()) {
 
 #' Rescale continuous covariates as appropriate for edstan models
 #'
+#' This function scales a covariate to have a mean of zero and standard
+#' deviation of 0.5.
+#'
 #' @param x A numeric vector, matrix, or data frame
 #' @return A numeric vector, matrix, or data frame with rescaled covariates
 #'   having mean of zero and standard deviation of 0.5.
@@ -253,6 +262,9 @@ rescale_continuous <- function(x) {
 
 
 #' Rescale binary covariates as appropriate for edstan models
+#'
+#' This function rescales a covariate to have a mean of zero and range
+#' (maximum - minimum) of one
 #'
 #' @param x A numeric vector, matrix, or data frame
 #' @return A numeric vector, matrix, or data frame with rescaled covariates

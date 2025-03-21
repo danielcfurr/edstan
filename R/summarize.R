@@ -1,5 +1,8 @@
 #' View a table of selected parameter posteriors after using \code{irt_stan}
 #'
+#' This function prints a table summarizing the parameters for a fitted
+#' \code{edstan} model.
+#'
 #' @param fit A \code{stanfit-class} object created by \code{\link{irt_stan}}.
 #' @param data_list An optional Stan data list created with
 #'   \code{\link{irt_data}}. If provided, the printed posterior summaries for
@@ -18,10 +21,8 @@
 #' twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
 #'                       iter = 300, chains = 4)
 #'
-#' # Get a table of parameter posteriors
+#' # Get a table summarizing parameter posteriors
 #' print_irt_stan(twopl_fit, spelling_list)
-#' # Or
-#' print_irt_stan(twopl_fit)
 #' }
 #' @export
 print_irt_stan <- function(fit, data_list = NULL, ...) {
@@ -100,12 +101,15 @@ print_irt_stan <- function(fit, data_list = NULL, ...) {
 
 #' View a plot of summary statistics after using \code{irt_stan}
 #'
+#' This function creates a figure summarizing parameter-level diagnostics
+#' such as R hat and effective sample size.
+#'
 #' @param fit A \code{stanfit-class} object created by \code{\link{irt_stan}}
 #'   or \code{\link[rstan]{stan}}.
 #' @param stat A string for the statistic from the \code{summary} method for a
-#'   \code{stanfit} object to plot. The default is "Rhat" but could, for
-#'   example, be "mean" or "n_eff".
-#' @param ... Additional options (such as \code{pars} or \code{use_cache}),
+#'   \code{stanfit} object to plot. The default is "Rhat" but could also be
+#'   "n_eff" for the effective sample size.
+#' @param ... Additional options (such as \code{pars}),
 #'   passed to the \code{summary} method for a \code{stanfit} object. Not
 #'   required.
 #' @return A \code{ggplot} object.
@@ -115,12 +119,12 @@ print_irt_stan <- function(fit, data_list = NULL, ...) {
 #' # Make a suitable data list:
 #' spelling_list <- irt_data(response_matrix = spelling[, 2:5],
 #'                           covariates = spelling[, "male", drop = FALSE],
-#'                           formula = ~ 1 + male)
+#'                           formula = ~ 1 + rescale_binary(male))
 #'
 #'\dontrun{
 #' # Fit a latent regression  2PL
 #' twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
-#'                       iter = 300, chains = 4)
+#'                       iter = 2000, chains = 4)
 #'
 #' # Get a plot showing Rhat statistics
 #' rhat_columns(twopl_fit)
@@ -149,12 +153,15 @@ stan_columns_plot <- function(fit, stat = "Rhat", ...) {
 
 #' Read and print the code for an edstan model
 #'
-#' This function reads a file from the `inst/extdata/` directory of the package,
-#' returning its contents invisibly while optionally printing them.
+#' This function reads a Stan file from the `inst/extdata/` directory of the
+#' package, returning its contents invisibly while optionally printing them.
 #'
 #' @param filename The name of the stan file.
 #' @param print Whether to print the stan file contents. Default is `TRUE`.
 #' @return Invisibly returns a character vector of the stan file contents.
+#' @examples
+#' # View the Stan code for the Rasch model
+#' edstan_model_code("rasch_latent_reg.stan")
 #' @export
 edstan_model_code <- function(filename, print = TRUE) {
   file_path <- system.file("extdata", filename, package = "edstan")

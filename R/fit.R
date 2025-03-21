@@ -1,4 +1,6 @@
-#' Estimate an item response model with Stan
+#' Fit an item response model with Stan
+#'
+#' This function initiates sampling for an edstan model.
 #'
 #' @param data_list A Stan data list created with \code{\link{irt_data}}.
 #' @param model The file name for one of the provided .stan files, or
@@ -11,8 +13,8 @@
 #'   \code{chains} for the number of chains.
 #'
 #' @details
-#' The following table lists the models inlcuded in \pkg{edstan} along with the
-#' associated \emph{.stan} files. The file names are given as the \code{model}
+#' The following table lists the models included in \pkg{edstan} along with the
+#' associated \emph{.stan} files. These file names are given as the \code{model}
 #' argument.
 #'
 #' \tabular{ll}{
@@ -35,49 +37,40 @@
 #' researchers who wish to craft their own Stan models.
 #'
 #' @return A \code{\link[rstan]{stanfit-class}} object.
-#' @seealso See \code{\link[rstan]{stan}}, for which this function is a wrapper,
-#'   for additional options.
-#'   See \code{\link{irt_data}} and \code{\link{labelled_integer}} for functions
-#'   that facilitate creating a suitable \code{data_list}.
+#' @seealso See \code{\link[rstan]{stan}}, for which this function is a wrapper.
+#'   See \code{\link{irt_data}} for creating the data list.
+#'   See \code{\link{rescale_continuous}} and \code{\link{rescale_binary}} for
+#'   appropriately scaling latent regression covariates.
 #'   See \code{\link{print_irt_stan}} and \code{\link[rstan]{print.stanfit}} for
 #'   ways of getting tables summarizing parameter posteriors.
 #' @examples
-#' # List the Stan models included in edstan
-#' folder <- system.file("extdata", package = "edstan")
-#' dir(folder, "\\.stan$")
-#'
-#' # List the contents of one of the .stan files
-#' rasch_file <- system.file("extdata/rasch_latent_reg.stan",
-#'                           package = "edstan")
-#' cat(readLines(rasch_file), sep = "\n")
-#'
 #'\dontrun{
 #' # Fit the Rasch and 2PL models on wide-form data with a latent regression
 #'
 #' spelling_list <- irt_data(response_matrix = spelling[, 2:5],
 #'                           covariates = spelling[, "male", drop = FALSE],
-#'                           formula = ~ 1 + male)
+#'                           formula = ~ rescale_binary(male))
 #'
-#' rasch_fit <- irt_stan(spelling_list, iter = 300, chains = 4)
+#' rasch_fit <- irt_stan(spelling_list, iter = 2000, chains = 4)
 #' print_irt_stan(rasch_fit, spelling_list)
 #'
 #' twopl_fit <- irt_stan(spelling_list, model = "2pl_latent_reg.stan",
-#'                       iter = 300, chains = 4)
+#'                       iter = 2000, chains = 4)
 #' print_irt_stan(twopl_fit, spelling_list)
 #'
 #'
 #' # Fit the rating scale and partial credit models without a latent regression
 #'
 #' agg_list_1 <- irt_data(y = aggression$poly,
-#'                        ii = labelled_integer(aggression$description),
+#'                        ii = aggression$description,
 #'                        jj = aggression$person)
 #'
 #' fit_rsm <- irt_stan(agg_list_1, model = "rsm_latent_reg.stan",
-#'                     iter = 300, chains = 4)
+#'                     iter = 2000, chains = 4)
 #' print_irt_stan(fit_rsm, agg_list_1)
 #'
 #' fit_pcm <- irt_stan(agg_list_1, model = "pcm_latent_reg.stan",
-#'                     iter = 300, chains = 4)
+#'                     iter = 2000, chains = 4)
 #' print_irt_stan(fit_pcm, agg_list_1)
 #'
 #'
@@ -85,17 +78,17 @@
 #' # a latent regression
 #'
 #' agg_list_2 <- irt_data(y = aggression$poly,
-#'                        ii = labelled_integer(aggression$description),
+#'                        ii = aggression$description,
 #'                        jj = aggression$person,
 #'                        covariates = aggression[, c("male", "anger")],
-#'                        formula = ~ 1 + male*anger)
+#'                        formula = ~ rescale_binary(male)*rescale_continuous(anger))
 #'
 #' fit_grsm <- irt_stan(agg_list_2, model = "grsm_latent_reg.stan",
-#'                      iter = 300, chains = 4)
+#'                      iter = 2000, chains = 4)
 #' print_irt_stan(fit_grsm, agg_list_2)
 #'
 #' fit_gpcm <- irt_stan(agg_list_2, model = "gpcm_latent_reg.stan",
-#'                      iter = 300, chains = 4)
+#'                      iter = 2000, chains = 4)
 #' print_irt_stan(fit_grsm, agg_list_2)
 #' }
 #' @export
@@ -108,9 +101,12 @@ irt_stan <- function(data_list, model = "", ... ) {
   # file if needed. Look for file first in working directory/given file path. If
   # not found, look up in package install folder.
   if(model == "") {
+
     stub <- ifelse(is_polytomous, "pcm_latent_reg.stan", "rasch_latent_reg.stan")
     stan_file <- file.path(system.file("extdata", package = "edstan"), stub)
+
   } else {
+
     stan_file <- ifelse(grepl("\\.stan$", model), model, paste0(model, ".stan"))
     if(!file.exists(stan_file)) {
       alt_file <- file.path(system.file("extdata", package = "edstan"), stan_file)
@@ -120,6 +116,7 @@ irt_stan <- function(data_list, model = "", ... ) {
         stop("Stan model file not found.")
       }
     }
+
   }
 
   message("Using ", file.path(stan_file), ".")
