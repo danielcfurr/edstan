@@ -11,7 +11,7 @@ vignette: >
   %\usepackage[utf8]{inputenc}
 ---
 
-```{r, include = FALSE}
+```{r, include = TRUE}
 # Hidden setup
 knitr::opts_chunk$set(eval = FALSE)
 set.seed(17)
