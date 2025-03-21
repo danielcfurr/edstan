@@ -70,19 +70,14 @@ if problems are identified.}
 A data list suitable for \code{\link{irt_stan}}.
 }
 \description{
-This function creates a list formatted for use with the edstan models.
+This function prepares item response data, creating a data list that may be
+passed to \code{\link{irt_stan}}.
 }
 \examples{
 # For a response matrix ("wide-form" data) with person covariates:
 spelling_list <- irt_data(response_matrix = spelling[, 2:5],
                           covariates = spelling[, "male", drop = FALSE],
-                          formula = ~ 1 + male)
-
-# Alternatively, the same may be created by:
-W <- cbind(intercept = 1, spelling[, "male"])
-spelling_list <- irt_data(response_matrix = spelling[, 2:5],
-                          covariates = W,
-                          formula = NULL)
+                          formula = ~ rescale_binary(male))
 
 # For long-form data (one row per item-person pair):
 agg_list_1 <- irt_data(y = aggression$poly,
@@ -94,7 +89,7 @@ agg_list_2 <- irt_data(y = aggression$poly,
                        ii = labelled_integer(aggression$description),
                        jj = aggression$person,
                        covariates = aggression[, c("male", "anger")],
-                       formula = ~ 1 + male*anger)
+                       formula = ~ 1 + rescale_continuous(male)*rescale_continuous(anger))
 }
 \seealso{
 See \code{\link{labelled_integer}} for a means of creating

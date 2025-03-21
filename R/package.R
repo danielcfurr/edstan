@@ -3,7 +3,8 @@
 #' \pkg{edstan} streamlines the fitting of Bayesian item response
 #' theory models using \pkg{rstan}.
 #'
-#' A user will generally want to use the following functions to fit a model:
+#' A typical workflow in fitting a model using \pkg{edstan} involves the
+#' following sequence:
 #'
 #' \enumerate{
 #'   \item \code{\link{irt_data}} to format the data,
@@ -12,13 +13,12 @@
 #'   \item \code{\link{print_irt_stan}} to view parameter summaries.
 #' }
 #'
-#' The package also includes six Stan
-#' models (see \code{\link{irt_stan}} for a list) and two example datasets
-#' (\code{\link{aggression}} and \code{\link{spelling}}).
-#'
-#' It is expected that once a user is comfortable fitting pre-defined
-#' \pkg{edstan} models, they will write their own Stan models and fit them with
-#' \code{\link[rstan]{stan}}, for which \code{\link{irt_stan}} is a wrapper.
+#' The package includes six Stan item response models
+#' (see \code{\link{irt_stan}} for a list) and two example datasets
+#' (\code{\link{aggression}} and \code{\link{spelling}}). It is expected that
+#' once that a user is comfortable utilizing the preceding workflow with the
+#' pre-defined \pkg{edstan} models, they will go on to write their own Stan
+#' models.
 #'
 #' @import rstan
 "_PACKAGE"

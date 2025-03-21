@@ -4,15 +4,15 @@ Daniel C. Furr
 
 # Overview
 
-The `{edstan}` package for R provides convenience functions and
+The edstan package for R provides convenience functions and
 pre-programmed Stan models related to item response theory (IRT). Its
-purpose is to make fitting common IRT models using Stan easy. `{edstan}`
-relies on the `{rstan}` package, which should be installed first. [See
+purpose is to make fitting common IRT models using Stan easy. edstan
+relies on the rstan package, which should be installed first. [See
 here](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started) for
-instructions on installing `{rstan}`.
+instructions on installing rstan.
 
-The following table lists the models packaged with `{edstan}`. Each of
-these may optionally included a latent regression of ability. The table
+The following table lists the models packaged with edstan. Each of these
+may optionally included a latent regression of ability. The table
 includes also links to case studies for the models, though it should be
 noted that the Stan code and prior distributions have changed somewhat
 this they were written.
@@ -26,7 +26,7 @@ this they were written.
 | [Generalized partial credit](http://mc-stan.org/documentation/case-studies/pcm_and_gpcm.html) | *gpcm_latent_reg.stan* |
 | [Generalized rating scale](http://mc-stan.org/documentation/case-studies/rsm_and_grsm.html) | *grsm_latent_reg.stan* |
 
-The next table lists the functions packaged with `{edstan}`.
+The next table lists the functions packaged with edstan.
 
 | Function               | Purpose                                          |
 |------------------------|--------------------------------------------------|
@@ -43,12 +43,11 @@ The next table lists the functions packaged with `{edstan}`.
 
 ## Dichotomous IRT with spelling data
 
-The R code below first loads `{edstan}`, which implicitly loads
-`{rstan}`. Then the two commands that follow set options related to
-`{rstan}`, which are generally recommended. The first causes compiled
-Stan models to be saved to disc, which allows models to run more quickly
-after the first time. The second causes Stan to run multiple MCMC chains
-in parallel.
+The R code below first loads edstan, which implicitly loads rstan. Then
+the two commands that follow set options related to rstan, which are
+generally recommended. The first causes compiled Stan models to be saved
+to disc, which allows models to run more quickly after the first time.
+The second causes Stan to run multiple MCMC chains in parallel.
 
 ``` r
 # Load packages and set options
@@ -114,7 +113,7 @@ data list.
 In the next block a data list is made that includes `male` as a
 covariate. We use the `rescale_binary()` function to rescale this
 covariate for compatability with the prior distributions specified in
-`{edstan}` models.
+edstan models.
 
 ``` r
 # Make a data list with person covariates
@@ -204,7 +203,7 @@ print_irt_stan(fit_rasch, latent_reg_list)
     ##   lambda[2]  0.24       0 0.14 -0.02  0.15  0.24  0.33  0.52  2614 1.00
     ##   sigma      1.25       0 0.09  1.07  1.18  1.25  1.31  1.44   463 1.02
     ##   
-    ## Samples were drawn using NUTS(diag_e) at Fri Mar 21 13:05:18 2025.
+    ## Samples were drawn using NUTS(diag_e) at Fri Mar 21 16:53:29 2025.
     ## For each parameter, n_eff is a crude measure of effective sample size,
     ## and Rhat is the potential scale reduction factor on split chains (at 
     ## convergence, Rhat=1).
@@ -282,7 +281,7 @@ takes a vector of person IDs. The use of *covariates* and *formula* are
 the same as before. For the latent regression part, we use the
 `rescale_binary()` and `rescale_continuous()` functions to rescale the
 covariates for compatability with the prior distributions specified in
-`{edstan}` models.
+edstan models.
 
 ``` r
 # Make the data list
@@ -446,22 +445,22 @@ print_irt_stan(fit_gpcm, agg_list)
     ##   lambda[3]  0.60    0.00 0.12  0.36  0.52  0.60  0.68  0.85  4134 1.00
     ##   lambda[4] -0.28    0.00 0.27 -0.80 -0.46 -0.27 -0.09  0.25  4946 1.00
     ##   
-    ## Samples were drawn using NUTS(diag_e) at Fri Mar 21 13:09:01 2025.
+    ## Samples were drawn using NUTS(diag_e) at Fri Mar 21 16:57:23 2025.
     ## For each parameter, n_eff is a crude measure of effective sample size,
     ## and Rhat is the potential scale reduction factor on split chains (at 
     ## convergence, Rhat=1).
 
 # Technical notes
 
-Users will be able to fit the `{edstan}` models without full knowledge
-of the technical details, though these are provided in this section. All
+Users will be able to fit the edstan models without full knowledge of
+the technical details, though these are provided in this section. All
 that is really needed for interpreting results is to know the meanings
 assigned to the Greek letters.
 
 ## Notation
 
-Variables and parameters are similar across `{edstan}` models. The
-variables used are:
+Variables and parameters are similar across edstan models. The variables
+used are:
 
 - $i = 1 \ldots I$ indexes items.
 - $j = 1 \ldots J$ indexes persons.
@@ -602,11 +601,11 @@ $$\beta \sim \mathrm{N}(0, 9)$$ $$\kappa \sim \mathrm{N}(0, 9)$$
 
 # Writing your own Stan models
 
-It is expected that `{edstan}` users will eventually want to write their
-own Stan models. In this case, the `{edstan}` functions may still be
-useful. If the user-written models use the same conventions for naming
-variables and parameters as the `{edstan}` models, then the `irt_data()`
-and `print_irt_stan()` functions will work just fine for the
-user-written models. The function `stan_columns_plot()` works with any
-Stan model, and `labelled_integer()` may help in data preparation for
-Stan models in general.
+It is expected that edstan users will eventually want to write their own
+Stan models. In this case, the edstan functions may still be useful. If
+the user-written models use the same conventions for naming variables
+and parameters as the edstan models, then the `irt_data()` and
+`print_irt_stan()` functions will work just fine for the user-written
+models. The function `stan_columns_plot()` works with any Stan model,
+and `labelled_integer()` may help in data preparation for Stan models in
+general.

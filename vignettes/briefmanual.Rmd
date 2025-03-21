@@ -11,18 +11,20 @@ vignette: >
   %\usepackage[utf8]{inputenc}
 ---
 
+
 ```{r, include = FALSE}
-# Hidden setup
-knitr::opts_chunk$set(eval = TRUE)
+# Do not evaluate code if outputing to html in order to pass CRAN checks
+is_html <- knitr::opts_knit$get("rmarkdown.pandoc.to") == "html"
+knitr::opts_chunk$set(eval = !is_html)
 set.seed(17)
 ```
 
 # Overview
 
-The `{edstan}` package for R provides convenience functions and pre-programmed Stan models related to item response theory (IRT). Its purpose is to make fitting common IRT models using Stan easy. `{edstan}` relies on the `{rstan}` package, which should be installed first.
-[See here](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started) for instructions on installing `{rstan}`.
+The edstan package for R provides convenience functions and pre-programmed Stan models related to item response theory (IRT). Its purpose is to make fitting common IRT models using Stan easy. edstan relies on the rstan package, which should be installed first.
+[See here](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started) for instructions on installing rstan.
 
-The following table lists the models packaged with `{edstan}`. Each of these may optionally included a latent regression of ability. The table includes also links to case studies for the models, though it should be noted that the Stan code and prior distributions have changed somewhat this they were written.
+The following table lists the models packaged with edstan. Each of these may optionally included a latent regression of ability. The table includes also links to case studies for the models, though it should be noted that the Stan code and prior distributions have changed somewhat this they were written.
 
 | Model                                                                                          | Stan file           |
 |------------------------------------------------------------------------------------------------|-------------------------|
@@ -33,7 +35,7 @@ The following table lists the models packaged with `{edstan}`. Each of these may
 | [Generalized partial credit](http://mc-stan.org/documentation/case-studies/pcm_and_gpcm.html)  | *gpcm_latent_reg.stan*  |
 | [Generalized rating scale  ](http://mc-stan.org/documentation/case-studies/rsm_and_grsm.html)  | *grsm_latent_reg.stan*  |
 
-The next table lists the functions packaged with `{edstan}`.
+The next table lists the functions packaged with edstan.
 
 | Function               | Purpose                                          |
 |------------------------|--------------------------------------------------|
@@ -51,7 +53,7 @@ The next table lists the functions packaged with `{edstan}`.
 
 ## Dichotomous IRT with spelling data
 
-The R code below first loads `{edstan}`, which implicitly loads `{rstan}`. Then the two commands that follow set options related to `{rstan}`, which are generally recommended. The first causes compiled Stan models to be saved to disc, which allows models to run more quickly after the first time. The second causes Stan to run multiple MCMC chains in parallel.
+The R code below first loads edstan, which implicitly loads rstan. Then the two commands that follow set options related to rstan, which are generally recommended. The first causes compiled Stan models to be saved to disc, which allows models to run more quickly after the first time. The second causes Stan to run multiple MCMC chains in parallel.
 
 ```{r, message = FALSE, results = 'hide'}
 # Load packages and set options
@@ -76,7 +78,7 @@ str(simple_list)
 
 This data list may be fed to the `irt_stan()` function to fit a Rasch or 2PL model, but for this example we will add a person covariate to the model using the optional arguments *covariates* and *formula*. The *covariates* option takes a data frame of person-related covariates and the *formula* option takes a formula to be applied to that data frame. The left side of the formula should be left empty, though implicitly it is latent ability. The choice of what to include in the latent regression (if anything) is made when calling `irt_data()` to assemble a data list.
 
-In the next block a data list is made that includes `male` as a covariate. We use the `rescale_binary()` function to rescale this covariate for compatability with the prior distributions specified in `{edstan}` models.
+In the next block a data list is made that includes `male` as a covariate. We use the `rescale_binary()` function to rescale this covariate for compatability with the prior distributions specified in edstan models.
 
 ```{r}
 # Make a data list with person covariates
@@ -139,7 +141,7 @@ head(aggression)
 
 The data consists of 316 persons responding to 24 items with responses scored as 0, 1, or 2. The variable `person` is a person ID, `item` is an item ID, and `poly` is the scored response. In this way, the data may be said to be in "long form" as there is one row per person-item combination. The data includes two person covariates: `male` is a dummy variable for whether the respondent is male, and `anger` is the person's trait anger raw score, a separate measure.
 
-Next we make the data list using `irt_data()`. However, we'll use a different set of arguments because the data are in long form: `y` takes the responses in vector form, `ii` takes a vector of item IDs, and `jj` takes a vector of person IDs. The use of *covariates* and *formula* are the same as before. For the latent regression part, we use the `rescale_binary()` and `rescale_continuous()` functions to rescale the covariates for compatability with the prior distributions specified in `{edstan}` models.
+Next we make the data list using `irt_data()`. However, we'll use a different set of arguments because the data are in long form: `y` takes the responses in vector form, `ii` takes a vector of item IDs, and `jj` takes a vector of person IDs. The use of *covariates* and *formula* are the same as before. For the latent regression part, we use the `rescale_binary()` and `rescale_continuous()` functions to rescale the covariates for compatability with the prior distributions specified in edstan models.
 
 ```{r}
 # Make the data list
@@ -179,12 +181,12 @@ print_irt_stan(fit_gpcm, agg_list)
 
 # Technical notes
 
-Users will be able to fit the `{edstan}` models without full knowledge of the technical details, though these are provided in this section. All that is really needed for interpreting results is to know the meanings assigned to the Greek letters.
+Users will be able to fit the edstan models without full knowledge of the technical details, though these are provided in this section. All that is really needed for interpreting results is to know the meanings assigned to the Greek letters.
 
 
 ## Notation
 
-Variables and parameters are similar across `{edstan}` models. The variables used are:
+Variables and parameters are similar across edstan models. The variables used are:
 
 * $i = 1 \ldots I$ indexes items.
 * $j = 1 \ldots J$ indexes persons.
@@ -316,4 +318,4 @@ $$\kappa \sim \mathrm{N}(0, 9)$$
 
 # Writing your own Stan models
 
-It is expected that `{edstan}` users will eventually want to write their own Stan models. In this case, the `{edstan}` functions may still be useful. If the user-written models use the same conventions for naming variables and parameters as the `{edstan}` models, then the `irt_data()` and `print_irt_stan()` functions will work just fine for the user-written models. The function `stan_columns_plot()` works with any Stan model, and `labelled_integer()` may help in data preparation for Stan models in general.
+It is expected that edstan users will eventually want to write their own Stan models. In this case, the edstan functions may still be useful. If the user-written models use the same conventions for naming variables and parameters as the edstan models, then the `irt_data()` and `print_irt_stan()` functions will work just fine for the user-written models. The function `stan_columns_plot()` works with any Stan model, and `labelled_integer()` may help in data preparation for Stan models in general.

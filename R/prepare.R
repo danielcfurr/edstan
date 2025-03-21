@@ -1,6 +1,7 @@
 #' Create a Stan data list from an item response matrix or from long-form data.
 #'
-#' This function creates a list formatted for use with the edstan models.
+#' This function prepares item response data, creating a data list that may be
+#' passed to \code{\link{irt_stan}}.
 #'
 #' @param response_matrix An item response matrix.
 #'   Columns represent items and rows represent persons.
@@ -52,13 +53,7 @@
 #' # For a response matrix ("wide-form" data) with person covariates:
 #' spelling_list <- irt_data(response_matrix = spelling[, 2:5],
 #'                           covariates = spelling[, "male", drop = FALSE],
-#'                           formula = ~ 1 + male)
-#'
-#' # Alternatively, the same may be created by:
-#' W <- cbind(intercept = 1, spelling[, "male"])
-#' spelling_list <- irt_data(response_matrix = spelling[, 2:5],
-#'                           covariates = W,
-#'                           formula = NULL)
+#'                           formula = ~ rescale_binary(male))
 #'
 #' # For long-form data (one row per item-person pair):
 #' agg_list_1 <- irt_data(y = aggression$poly,
@@ -70,7 +65,7 @@
 #'                        ii = labelled_integer(aggression$description),
 #'                        jj = aggression$person,
 #'                        covariates = aggression[, c("male", "anger")],
-#'                        formula = ~ 1 + male*anger)
+#'                        formula = ~ 1 + rescale_continuous(male)*rescale_continuous(anger))
 #' @export
 irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
                      jj = integer(), covariates = data.frame(), formula = NULL,
@@ -191,7 +186,7 @@ irt_data <- function(response_matrix = matrix(), y = integer(), ii = integer(),
   if (validate_regression) {
     W <- .validate_regression_model(formula, covariates)
   } else {
-    W <- model.matrix(formula, covariates)
+    W <- stats::model.matrix(formula, covariates)
   }
 
   data_list <- list(N = length(y), I = max(ii), J = max(jj), ii = ii, jj = jj,
@@ -249,7 +244,7 @@ labelled_integer <- function(x = vector()) {
 #' rescale_continuous(mat)
 #' @export
 rescale_continuous <- function(x) {
-  f <- function(y) (y - mean(y)) / sd(y) / 2
+  f <- function(y) (y - mean(y)) / stats::sd(y) / 2
   d <- length(dim(x))
   if (is.vector(x)) {
     return(f(x))
@@ -294,13 +289,11 @@ rescale_binary <- function(x) {
 #'
 #' @param covariates A data frame containing covariates.
 #' @param jj Index for person associated with each row.
-#' @param not_missing Boolean for whether each row is associated with a missing
-#'   item response.
 #' @return A data frame with one row per person.
 #' @keywords internal
 .long_format_covariates <- function(covariates, jj, formula) {
 
-  mm <- model.matrix(formula, covariates)
+  mm <- stats::model.matrix(formula, covariates)
   split_df <- split(as.data.frame(mm), jj)
   unique_rows_by_person <- sapply(split_df, function(x) nrow(unique(x)))
 
@@ -356,7 +349,7 @@ rescale_binary <- function(x) {
 #' @keywords internal
 .validate_continuous <- function(x, nm) {
   x_mean <- mean(x)
-  x_sd <- sd(x)
+  x_sd <- stats::sd(x)
   issues <- c()
 
   if (all.equal(0, x_mean, tolerance = .01) != TRUE) {
@@ -385,8 +378,8 @@ rescale_binary <- function(x) {
 #' @return A character vector of identified issues.
 #' @keywords internal
 .validate_regression_model <- function(formula, data) {
-  mm <- model.matrix(formula, data)
-  model_terms <- terms(formula, data = data)
+  mm <- stats::model.matrix(formula, data)
+  model_terms <- stats::terms(formula, data = data)
 
   # Check for missing values
   if (any(is.na(mm))) {

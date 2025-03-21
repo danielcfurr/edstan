@@ -638,17 +638,16 @@ Object.defineProperty(e,"__esModule",{value:!0}),e.mhchemParser=void 0;var r=fun
 <h1 id="a-brief-manual">A brief manual</h1>
 <p>Daniel C. Furr</p>
 <h1 id="overview">Overview</h1>
-<p>The <code>{edstan}</code> package for R provides convenience
-functions and pre-programmed Stan models related to item response theory
-(IRT). Its purpose is to make fitting common IRT models using Stan easy.
-<code>{edstan}</code> relies on the <code>{rstan}</code> package, which
-should be installed first. <a href="https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started">See
-here</a> for instructions on installing <code>{rstan}</code>.</p>
-<p>The following table lists the models packaged with
-<code>{edstan}</code>. Each of these may optionally included a latent
-regression of ability. The table includes also links to case studies for
-the models, though it should be noted that the Stan code and prior
-distributions have changed somewhat this they were written.</p>
+<p>The edstan package for R provides convenience functions and
+pre-programmed Stan models related to item response theory (IRT). Its
+purpose is to make fitting common IRT models using Stan easy. edstan
+relies on the rstan package, which should be installed first. <a href="https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started">See
+here</a> for instructions on installing rstan.</p>
+<p>The following table lists the models packaged with edstan. Each of
+these may optionally included a latent regression of ability. The table
+includes also links to case studies for the models, though it should be
+noted that the Stan code and prior distributions have changed somewhat
+this they were written.</p>
 <table>
 <thead>
 <tr class="header">
@@ -688,8 +687,7 @@ rating scale</a></td>
 </tr>
 </tbody>
 </table>
-<p>The next table lists the functions packaged with
-<code>{edstan}</code>.</p>
+<p>The next table lists the functions packaged with edstan.</p>
 <table>
 <thead>
 <tr class="header">
@@ -735,12 +733,12 @@ rating scale</a></td>
 <h1 id="brief-tutorial">Brief tutorial</h1>
 <h2 id="dichotomous-irt-with-spelling-data">Dichotomous IRT with
 spelling data</h2>
-<p>The R code below first loads <code>{edstan}</code>, which implicitly
-loads <code>{rstan}</code>. Then the two commands that follow set
-options related to <code>{rstan}</code>, which are generally
-recommended. The first causes compiled Stan models to be saved to disc,
-which allows models to run more quickly after the first time. The second
-causes Stan to run multiple MCMC chains in parallel.</p>
+<p>The R code below first loads edstan, which implicitly loads rstan.
+Then the two commands that follow set options related to rstan, which
+are generally recommended. The first causes compiled Stan models to be
+saved to disc, which allows models to run more quickly after the first
+time. The second causes Stan to run multiple MCMC chains in
+parallel.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Load packages and set options</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(edstan)</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">options</span>(<span class="at">mc.cores =</span> parallel<span class="sc">::</span><span class="fu">detectCores</span>())</span></code></pre></div>
@@ -791,7 +789,7 @@ calling <code>irt_data()</code> to assemble a data list.</p>
 <p>In the next block a data list is made that includes <code>male</code>
 as a covariate. We use the <code>rescale_binary()</code> function to
 rescale this covariate for compatability with the prior distributions
-specified in <code>{edstan}</code> models.</p>
+specified in edstan models.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Make a data list with person covariates</span></span>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>latent_reg_list <span class="ot">&lt;-</span> <span class="fu">irt_data</span>(</span>
 <span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">response_matrix =</span> spelling[, <span class="sc">-</span><span class="dv">1</span>],</span>
@@ -865,7 +863,7 @@ deviation of the ability distribution.</p>
 ##   lambda[2]  0.24       0 0.14 -0.02  0.15  0.24  0.33  0.52  2614 1.00
 ##   sigma      1.25       0 0.09  1.07  1.18  1.25  1.31  1.44   463 1.02
 ##   
-## Samples were drawn using NUTS(diag_e) at Fri Mar 21 13:05:18 2025.
+## Samples were drawn using NUTS(diag_e) at Fri Mar 21 16:53:29 2025.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>
@@ -929,7 +927,7 @@ IDs. The use of <em>covariates</em> and <em>formula</em> are the same as
 before. For the latent regression part, we use the
 <code>rescale_binary()</code> and <code>rescale_continuous()</code>
 functions to rescale the covariates for compatability with the prior
-distributions specified in <code>{edstan}</code> models.</p>
+distributions specified in edstan models.</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># Make the data list</span></span>
 <span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>agg_list <span class="ot">&lt;-</span> <span class="fu">irt_data</span>(</span>
 <span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  <span class="at">y =</span> aggression<span class="sc">$</span>poly,</span>
@@ -1076,18 +1074,18 @@ coefficients.</p>
 ##   lambda[3]  0.60    0.00 0.12  0.36  0.52  0.60  0.68  0.85  4134 1.00
 ##   lambda[4] -0.28    0.00 0.27 -0.80 -0.46 -0.27 -0.09  0.25  4946 1.00
 ##   
-## Samples were drawn using NUTS(diag_e) at Fri Mar 21 13:09:01 2025.
+## Samples were drawn using NUTS(diag_e) at Fri Mar 21 16:57:23 2025.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>
 <h1 id="technical-notes">Technical notes</h1>
-<p>Users will be able to fit the <code>{edstan}</code> models without
-full knowledge of the technical details, though these are provided in
-this section. All that is really needed for interpreting results is to
-know the meanings assigned to the Greek letters.</p>
+<p>Users will be able to fit the edstan models without full knowledge of
+the technical details, though these are provided in this section. All
+that is really needed for interpreting results is to know the meanings
+assigned to the Greek letters.</p>
 <h2 id="notation">Notation</h2>
-<p>Variables and parameters are similar across <code>{edstan}</code>
-models. The variables used are:</p>
+<p>Variables and parameters are similar across edstan models. The
+variables used are:</p>
 <ul>
 <li><span class="math inline">\(i = 1 \ldots I\)</span> indexes
 items.</li>
@@ -1211,12 +1209,11 @@ freedom.</p>
 <p>The priors for the item parameters are <span class="math display">\[\alpha \sim \mathrm{lognormal}(.5, 1)\]</span>
 <span class="math display">\[\beta \sim \mathrm{N}(0, 9)\]</span> <span class="math display">\[\kappa \sim \mathrm{N}(0, 9)\]</span></p>
 <h1 id="writing-your-own-stan-models">Writing your own Stan models</h1>
-<p>It is expected that <code>{edstan}</code> users will eventually want
-to write their own Stan models. In this case, the <code>{edstan}</code>
-functions may still be useful. If the user-written models use the same
-conventions for naming variables and parameters as the
-<code>{edstan}</code> models, then the <code>irt_data()</code> and
-<code>print_irt_stan()</code> functions will work just fine for the
+<p>It is expected that edstan users will eventually want to write their
+own Stan models. In this case, the edstan functions may still be useful.
+If the user-written models use the same conventions for naming variables
+and parameters as the edstan models, then the <code>irt_data()</code>
+and <code>print_irt_stan()</code> functions will work just fine for the
 user-written models. The function <code>stan_columns_plot()</code> works
 with any Stan model, and <code>labelled_integer()</code> may help in
 data preparation for Stan models in general.</p>

@@ -4,3 +4,9 @@
 ^README.md$
 aggression.do
 aggression.csv
+^doc$
+^Meta$
+^cran-comments\.md$
+briefmanual.md
+briefmanual_files/*
+dev.Rmd

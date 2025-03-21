@@ -4,3 +4,6 @@
 *.RData
 *.Rproj
 .DS_Store
+/doc/
+/Meta/
+cran-comments.md

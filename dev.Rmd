@@ -1,0 +1,54 @@
+# Developer notes
+
+## Release process
+
+Update documentation and run tests.
+
+```{r}
+devtools::document()
+devtools::check(vignettes = FALSE)
+testthat::test_local()
+```
+
+Build github_document version of the vignette.
+
+```{r}
+# Render to GitHub-flavored Markdown
+rmarkdown::render("vignettes/briefmanual.Rmd",
+                  output_format = "rmarkdown::github_document",
+                  output_file = "briefmanual.md")
+
+# Move the markdown files to the root directory
+file.rename("vignettes/briefmanual.md", "briefmanual.md")
+file.copy(
+  list.files("vignettes/briefmanual_files/", full.names = TRUE),
+  "briefmanual_files/",
+  recursive = TRUE)
+unlink("vignettes/briefmanual_files/", recursive = TRUE)
+```
+
+Any changes from the above should be pushed to the develop Git branch.
+
+Build the `.tar.gz` file.
+
+```{r}
+devtools::build()
+```
+
+Release the package to CRAN.
+
+```{r}
+use_cran_comments()
+devtools::release()
+```
+
+Once accepted, merge the develop branch into main.
+
+
+## Other
+
+Install the local package without the vignette, which is slow.
+
+```{r}
+devtools::install(build_vignettes = FALSE)
+```

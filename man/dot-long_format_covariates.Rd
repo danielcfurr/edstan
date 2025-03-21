@@ -10,9 +10,6 @@
 \item{covariates}{A data frame containing covariates.}
 
 \item{jj}{Index for person associated with each row.}
-
-\item{not_missing}{Boolean for whether each row is associated with a missing
-item response.}
 }
 \value{
 A data frame with one row per person.
