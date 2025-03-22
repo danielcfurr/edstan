@@ -227,6 +227,7 @@ $$
 \frac{\exp \sum_{s=1}^y (\theta_j - \beta_{is})}
      {1 + \sum_{k=1}^{m_i} \exp \sum_{s=1}^k (\theta_j - \beta_{is})}
 $$
+
 $$
 \Pr(Y_{ij} = y,~y = 0 | \theta_j, \beta_i) =
 \frac{1}
@@ -242,6 +243,7 @@ $$
 \frac{\exp \sum_{s=1}^y (\theta_j - \beta_i - \kappa_s)}
      {1 + \sum_{k=1}^{m} \exp \sum_{s=1}^k (\theta_j - \beta_i - \kappa_s)}
 $$
+
 $$
 \Pr(Y_{ij} = y,~y = 0 | \theta_j, \beta_i, \kappa_s) =
 \frac{1}
@@ -270,6 +272,7 @@ $$
      {1 + \sum_{k=1}^{m_i} \exp \sum_{s=1}^k 
        (\alpha_i \theta_j - \beta_{is})}
 $$
+
 $$
 \Pr(Y_{ij} = y,~y = 0 | \theta_j, \alpha_i, \beta_i) =
 \frac{1}
@@ -289,6 +292,7 @@ $$
      {1 + \sum_{k=1}^{m} \exp \sum_{s=1}^k 
        (\alpha_i \theta_j - \beta_i - \kappa_s)}
 $$
+
 $$
 \Pr(Y_{ij} = y,~y = 0 | \theta_j, \lambda, \alpha_i, \beta_i, \kappa_s) =
 \frac{1}
@@ -300,20 +304,21 @@ $$
 ## Priors
 
 For Rasch family models, the prior distributions for the person-related parameters are
-$$\theta_j \sim \mathrm{N}(w_j' \lambda, \sigma^2)$$
-$$\lambda \sim t_7(0, 2.5)$$
-$$\sigma \sim \mathrm{gamma}(2, 1)$$
+  - $\theta_j \sim \mathrm{N}(w_j' \lambda, \sigma^2)$
+  - $\lambda \sim t_7(0, 2.5)$
+  - $\sigma \sim \mathrm{gamma}(2, 1)$
 
 For models with discrimination parameters, the priors are
-$$\theta_j \sim \mathrm{N}(w_j' \lambda, 1)$$
-$$\lambda \sim t_7(0, 2.5)$$
+  - $\theta_j \sim \mathrm{N}(w_j' \lambda, 1)$
+  - $\lambda \sim t_7(0, 2.5)$
 
 In either case, the prior for $\lambda$ is applied to centered and scaled versions of the person covariates. Specifically: (1) continuous covariates are mean-centered and then divided by two times their standard deviations, (2) binary covariates are mean-centered and divided their maximum minus minimum values, and (3) no change is made to the constant, set to one, for the model intercept. $t_7$ is the Student's $t$ distribution with seven degrees of freedom.
 
 The priors for the item parameters are
-$$\alpha \sim \mathrm{lognormal}(.5, 1)$$
-$$\beta \sim \mathrm{N}(0, 9)$$
-$$\kappa \sim \mathrm{N}(0, 9)$$
+
+- $\alpha \sim \mathrm{lognormal}(.5, 1)$
+- $\beta \sim \mathrm{N}(0, 9)$
+- $\kappa \sim \mathrm{N}(0, 9)$
 
 
 # Writing your own Stan models

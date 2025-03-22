@@ -863,7 +863,7 @@ deviation of the ability distribution.</p>
 ##   lambda[2]  0.24       0 0.14 -0.02  0.15  0.24  0.33  0.52  2614 1.00
 ##   sigma      1.25       0 0.09  1.07  1.18  1.25  1.31  1.44   463 1.02
 ##   
-## Samples were drawn using NUTS(diag_e) at Fri Mar 21 16:53:29 2025.
+## Samples were drawn using NUTS(diag_e) at Fri Mar 21 17:11:44 2025.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>
@@ -1074,7 +1074,7 @@ coefficients.</p>
 ##   lambda[3]  0.60    0.00 0.12  0.36  0.52  0.60  0.68  0.85  4134 1.00
 ##   lambda[4] -0.28    0.00 0.27 -0.80 -0.46 -0.27 -0.09  0.25  4946 1.00
 ##   
-## Samples were drawn using NUTS(diag_e) at Fri Mar 21 16:57:23 2025.
+## Samples were drawn using NUTS(diag_e) at Fri Mar 21 17:15:24 2025.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>
@@ -1137,7 +1137,8 @@ closely adhere to these conventions.</p>
 \Pr(Y_{ij} = y,~y &gt; 0 | \theta_j, \beta_i) =
 \frac{\exp \sum_{s=1}^y (\theta_j - \beta_{is})}
 {1 + \sum_{k=1}^{m_i} \exp \sum_{s=1}^k (\theta_j - \beta_{is})}
-\]</span> <span class="math display">\[
+\]</span></p>
+<p><span class="math display">\[
 \Pr(Y_{ij} = y,~y = 0 | \theta_j, \beta_i) =
 \frac{1}
 {1 + \sum_{k=1}^{m_i} \exp \sum_{s=1}^k (\theta_j - \beta_{is})}
@@ -1148,7 +1149,8 @@ closely adhere to these conventions.</p>
 \Pr(Y_{ij} = y,~y &gt; 0 | \theta_j, \beta_i, \kappa_s) =
 \frac{\exp \sum_{s=1}^y (\theta_j - \beta_i - \kappa_s)}
 {1 + \sum_{k=1}^{m} \exp \sum_{s=1}^k (\theta_j - \beta_i - \kappa_s)}
-\]</span> <span class="math display">\[
+\]</span></p>
+<p><span class="math display">\[
 \Pr(Y_{ij} = y,~y = 0 | \theta_j, \beta_i, \kappa_s) =
 \frac{1}
 {1 + \sum_{k=1}^{m} \exp \sum_{s=1}^k (\theta_j - \beta_i - \kappa_s)}
@@ -1169,7 +1171,8 @@ model</h3>
 \frac{\exp \sum_{s=1}^y (\alpha_i  \theta_j - \beta_{is})}
 {1 + \sum_{k=1}^{m_i} \exp \sum_{s=1}^k
 (\alpha_i \theta_j - \beta_{is})}
-\]</span> <span class="math display">\[
+\]</span></p>
+<p><span class="math display">\[
 \Pr(Y_{ij} = y,~y = 0 | \theta_j, \alpha_i, \beta_i) =
 \frac{1}
 {1 + \sum_{k=1}^{m_i} \exp \sum_{s=1}^k
@@ -1185,7 +1188,8 @@ model</h3>
 (\alpha_i \theta_j - \beta_i - \kappa_s)}
 {1 + \sum_{k=1}^{m} \exp \sum_{s=1}^k
 (\alpha_i \theta_j - \beta_i - \kappa_s)}
-\]</span> <span class="math display">\[
+\]</span></p>
+<p><span class="math display">\[
 \Pr(Y_{ij} = y,~y = 0 | \theta_j, \lambda, \alpha_i, \beta_i, \kappa_s)
 =
 \frac{1}
@@ -1194,11 +1198,11 @@ model</h3>
 \]</span></p>
 <h2 id="priors">Priors</h2>
 <p>For Rasch family models, the prior distributions for the
-person-related parameters are <span class="math display">\[\theta_j \sim
-\mathrm{N}(w_j&#39; \lambda, \sigma^2)\]</span> <span class="math display">\[\lambda \sim t_7(0, 2.5)\]</span> <span class="math display">\[\sigma \sim \mathrm{gamma}(2, 1)\]</span></p>
-<p>For models with discrimination parameters, the priors are <span class="math display">\[\theta_j \sim \mathrm{N}(w_j&#39; \lambda,
-1)\]</span> <span class="math display">\[\lambda \sim t_7(0,
-2.5)\]</span></p>
+person-related parameters are - <span class="math inline">\(\theta_j
+\sim \mathrm{N}(w_j&#39; \lambda, \sigma^2)\)</span> - <span class="math inline">\(\lambda \sim t_7(0, 2.5)\)</span> - <span class="math inline">\(\sigma \sim \mathrm{gamma}(2, 1)\)</span></p>
+<p>For models with discrimination parameters, the priors are - <span class="math inline">\(\theta_j \sim \mathrm{N}(w_j&#39; \lambda,
+1)\)</span> - <span class="math inline">\(\lambda \sim t_7(0,
+2.5)\)</span></p>
 <p>In either case, the prior for <span class="math inline">\(\lambda\)</span> is applied to centered and scaled
 versions of the person covariates. Specifically: (1) continuous
 covariates are mean-centered and then divided by two times their
@@ -1206,8 +1210,15 @@ standard deviations, (2) binary covariates are mean-centered and divided
 their maximum minus minimum values, and (3) no change is made to the
 constant, set to one, for the model intercept. <span class="math inline">\(t_7\)</span> is the Student’s <span class="math inline">\(t\)</span> distribution with seven degrees of
 freedom.</p>
-<p>The priors for the item parameters are <span class="math display">\[\alpha \sim \mathrm{lognormal}(.5, 1)\]</span>
-<span class="math display">\[\beta \sim \mathrm{N}(0, 9)\]</span> <span class="math display">\[\kappa \sim \mathrm{N}(0, 9)\]</span></p>
+<p>The priors for the item parameters are</p>
+<ul>
+<li><span class="math inline">\(\alpha \sim \mathrm{lognormal}(.5,
+1)\)</span></li>
+<li><span class="math inline">\(\beta \sim \mathrm{N}(0,
+9)\)</span></li>
+<li><span class="math inline">\(\kappa \sim \mathrm{N}(0,
+9)\)</span></li>
+</ul>
 <h1 id="writing-your-own-stan-models">Writing your own Stan models</h1>
 <p>It is expected that edstan users will eventually want to write their
 own Stan models. In this case, the edstan functions may still be useful.
