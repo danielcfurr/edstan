@@ -304,11 +304,13 @@ $$
 ## Priors
 
 For Rasch family models, the prior distributions for the person-related parameters are
+
   - $\theta_j \sim \mathrm{N}(w_j' \lambda, \sigma^2)$
   - $\lambda \sim t_7(0, 2.5)$
   - $\sigma \sim \mathrm{gamma}(2, 1)$
 
 For models with discrimination parameters, the priors are
+
   - $\theta_j \sim \mathrm{N}(w_j' \lambda, 1)$
   - $\lambda \sim t_7(0, 2.5)$
 

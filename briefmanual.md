@@ -203,7 +203,7 @@ print_irt_stan(fit_rasch, latent_reg_list)
     ##   lambda[2]  0.24       0 0.14 -0.02  0.15  0.24  0.33  0.52  2614 1.00
     ##   sigma      1.25       0 0.09  1.07  1.18  1.25  1.31  1.44   463 1.02
     ##   
-    ## Samples were drawn using NUTS(diag_e) at Fri Mar 21 17:11:44 2025.
+    ## Samples were drawn using NUTS(diag_e) at Fri Mar 21 17:17:16 2025.
     ## For each parameter, n_eff is a crude measure of effective sample size,
     ## and Rhat is the potential scale reduction factor on split chains (at 
     ## convergence, Rhat=1).
@@ -445,7 +445,7 @@ print_irt_stan(fit_gpcm, agg_list)
     ##   lambda[3]  0.60    0.00 0.12  0.36  0.52  0.60  0.68  0.85  4134 1.00
     ##   lambda[4] -0.28    0.00 0.27 -0.80 -0.46 -0.27 -0.09  0.25  4946 1.00
     ##   
-    ## Samples were drawn using NUTS(diag_e) at Fri Mar 21 17:15:24 2025.
+    ## Samples were drawn using NUTS(diag_e) at Fri Mar 21 17:20:56 2025.
     ## For each parameter, n_eff is a crude measure of effective sample size,
     ## and Rhat is the potential scale reduction factor on split chains (at 
     ## convergence, Rhat=1).
@@ -588,11 +588,16 @@ $$
 ## Priors
 
 For Rasch family models, the prior distributions for the person-related
-parameters are - $\theta_j \sim \mathrm{N}(w_j' \lambda, \sigma^2)$ -
-$\lambda \sim t_7(0, 2.5)$ - $\sigma \sim \mathrm{gamma}(2, 1)$
+parameters are
 
-For models with discrimination parameters, the priors are -
-$\theta_j \sim \mathrm{N}(w_j' \lambda, 1)$ - $\lambda \sim t_7(0, 2.5)$
+- $\theta_j \sim \mathrm{N}(w_j' \lambda, \sigma^2)$
+- $\lambda \sim t_7(0, 2.5)$
+- $\sigma \sim \mathrm{gamma}(2, 1)$
+
+For models with discrimination parameters, the priors are
+
+- $\theta_j \sim \mathrm{N}(w_j' \lambda, 1)$
+- $\lambda \sim t_7(0, 2.5)$
 
 In either case, the prior for $\lambda$ is applied to centered and
 scaled versions of the person covariates. Specifically: (1) continuous

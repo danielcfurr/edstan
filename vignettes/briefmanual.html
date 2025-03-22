@@ -863,7 +863,7 @@ deviation of the ability distribution.</p>
 ##   lambda[2]  0.24       0 0.14 -0.02  0.15  0.24  0.33  0.52  2614 1.00
 ##   sigma      1.25       0 0.09  1.07  1.18  1.25  1.31  1.44   463 1.02
 ##   
-## Samples were drawn using NUTS(diag_e) at Fri Mar 21 17:11:44 2025.
+## Samples were drawn using NUTS(diag_e) at Fri Mar 21 17:17:16 2025.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>
@@ -1074,7 +1074,7 @@ coefficients.</p>
 ##   lambda[3]  0.60    0.00 0.12  0.36  0.52  0.60  0.68  0.85  4134 1.00
 ##   lambda[4] -0.28    0.00 0.27 -0.80 -0.46 -0.27 -0.09  0.25  4946 1.00
 ##   
-## Samples were drawn using NUTS(diag_e) at Fri Mar 21 17:15:24 2025.
+## Samples were drawn using NUTS(diag_e) at Fri Mar 21 17:20:56 2025.
 ## For each parameter, n_eff is a crude measure of effective sample size,
 ## and Rhat is the potential scale reduction factor on split chains (at 
 ## convergence, Rhat=1).</code></pre>
@@ -1198,11 +1198,20 @@ model</h3>
 \]</span></p>
 <h2 id="priors">Priors</h2>
 <p>For Rasch family models, the prior distributions for the
-person-related parameters are - <span class="math inline">\(\theta_j
-\sim \mathrm{N}(w_j&#39; \lambda, \sigma^2)\)</span> - <span class="math inline">\(\lambda \sim t_7(0, 2.5)\)</span> - <span class="math inline">\(\sigma \sim \mathrm{gamma}(2, 1)\)</span></p>
-<p>For models with discrimination parameters, the priors are - <span class="math inline">\(\theta_j \sim \mathrm{N}(w_j&#39; \lambda,
-1)\)</span> - <span class="math inline">\(\lambda \sim t_7(0,
-2.5)\)</span></p>
+person-related parameters are</p>
+<ul>
+<li><span class="math inline">\(\theta_j \sim \mathrm{N}(w_j&#39;
+\lambda, \sigma^2)\)</span></li>
+<li><span class="math inline">\(\lambda \sim t_7(0, 2.5)\)</span></li>
+<li><span class="math inline">\(\sigma \sim \mathrm{gamma}(2,
+1)\)</span></li>
+</ul>
+<p>For models with discrimination parameters, the priors are</p>
+<ul>
+<li><span class="math inline">\(\theta_j \sim \mathrm{N}(w_j&#39;
+\lambda, 1)\)</span></li>
+<li><span class="math inline">\(\lambda \sim t_7(0, 2.5)\)</span></li>
+</ul>
 <p>In either case, the prior for <span class="math inline">\(\lambda\)</span> is applied to centered and scaled
 versions of the person covariates. Specifically: (1) continuous
 covariates are mean-centered and then divided by two times their
