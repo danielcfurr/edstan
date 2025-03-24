@@ -10,3 +10,4 @@ aggression.csv
 briefmanual.md
 briefmanual_files/*
 dev.Rmd
+^CRAN-SUBMISSION$

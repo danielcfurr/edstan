@@ -3,12 +3,11 @@ Type: Package
 Title: Stan Models for Item Response Theory
 Version: 1.1.0
 Date: 2025-03-24
-Author: Daniel C. Furr
 Authors@R: person(given = c("Daniel", "C."),
                   family = "Furr",
                   role = c("aut", "cre"),
-                  email = "danielcfurr@gmail.com")
-Maintainer: Daniel C. Furr <danielcfurr@gmail.com>
+                  email = "danielcfurr@berkeley.edu")
+Maintainer: Daniel C. Furr <danielcfurr@berkeley.edu>
 Description: Streamlines the fitting of common Bayesian item response models 
     using Stan.
 License: BSD_3_clause + file LICENSE
