@@ -6,8 +6,8 @@
 \alias{edstan-package}
 \title{Stan for item response theory}
 \description{
-\pkg{edstan} streamlines the fitting of Bayesian item response
-theory models using \pkg{rstan}.
+\pkg{edstan} Streamlines the fitting of common Bayesian item response models
+using Stan.
 }
 \details{
 A typical workflow in fitting a model using \pkg{edstan} involves the
@@ -24,7 +24,7 @@ The package includes six Stan item response models
 (see \code{\link{irt_stan}} for a list) and two example datasets
 (\code{\link{aggression}} and \code{\link{spelling}}). It is expected that
 once that a user is comfortable utilizing the preceding workflow with the
-pre-defined \pkg{edstan} models, they will go on to write their own Stan
+predefined \pkg{edstan} models, they will go on to write their own Stan
 models.
 }
 \author{

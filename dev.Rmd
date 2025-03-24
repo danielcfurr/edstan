@@ -16,6 +16,13 @@ devtools::check(vignettes = FALSE)
 testthat::test_local()
 ```
 
+Run R CMD check.
+
+```{r}
+pkg_path <- devtools::build(vignettes = TRUE, manual = TRUE)
+system(paste("R CMD check", pkg_path))
+```
+
 Check for Windows compatibility.
 
 ```{r}
@@ -41,14 +48,12 @@ file.copy(
 unlink("vignettes/briefmanual_files/", recursive = TRUE)
 ```
 
-Release the package to CRAN.
+Release the package to CRAN. When successful, merge `develop` into `main`.
 
 ```{r}
 usethis::use_cran_comments()
 devtools::release()
 ```
-
-Once accepted, merge the develop branch into main.
 
 
 ## Other

@@ -8,3 +8,5 @@
 /doc/
 /Meta/
 cran-comments.md
+..Rcheck/*
+edstan.Rcheck/*
