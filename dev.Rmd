@@ -1,0 +1,65 @@
+# Developer notes
+
+## Release process
+
+Check spelling.
+
+```{r}
+devtools::spell_check()
+```
+
+Update documentation and run tests.
+
+```{r}
+devtools::document()
+devtools::check(vignettes = FALSE)
+testthat::test_local()
+```
+
+Run R CMD check.
+
+```{r}
+pkg_path <- devtools::build(vignettes = TRUE, manual = TRUE)
+system(paste("R CMD check", pkg_path))
+```
+
+Check for Windows compatibility.
+
+```{r}
+devtools::check_win_devel()
+```
+
+Build github_document version of the vignette. This is for viewing the vignette
+at Github and so does not affect the package build. The resulting updates should
+be pushed to the `develop` branch.
+
+```{r}
+# Render to GitHub-flavored Markdown
+rmarkdown::render("vignettes/briefmanual.Rmd",
+                  output_format = "rmarkdown::github_document",
+                  output_file = "briefmanual.md")
+
+# Move the markdown files to the root directory
+file.rename("vignettes/briefmanual.md", "briefmanual.md")
+file.copy(
+  list.files("vignettes/briefmanual_files/", full.names = TRUE),
+  "briefmanual_files/",
+  recursive = TRUE)
+unlink("vignettes/briefmanual_files/", recursive = TRUE)
+```
+
+Release the package to CRAN. When successful, merge `develop` into `main`.
+
+```{r}
+usethis::use_cran_comments()
+devtools::release()
+```
+
+
+## Other
+
+Install the local package.
+
+```{r}
+devtools::install()
+```

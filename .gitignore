@@ -3,3 +3,11 @@
 
 *.RData
 *.Rproj
+*.html
+.DS_Store
+/doc/
+/Meta/
+cran-comments.md
+..Rcheck/*
+edstan.Rcheck/*
+CRAN-SUBMISSION

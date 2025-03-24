@@ -16,25 +16,19 @@ data {
   array[N] int<lower=0> y; // response for n; y in {0 ... m_i}
 }
 transformed data {
-  int m; // # steps
-  m = max(y);
+  int m = max(y); // # steps
 }
 parameters {
   vector[I] beta;
-  vector[m - 1] kappa_free;
+  sum_to_zero_vector[m] kappa;
   vector[J] theta;
   real<lower=0> sigma;
 }
-transformed parameters {
-  vector[m] kappa;
-  kappa[1 : m - 1] = kappa_free;
-  kappa[m] = -1 * sum(kappa_free);
-}
 model {
   beta ~ normal(0, 3);
-  target += normal_lpdf(kappa | 0, 3);
+  kappa ~ normal(0, 3);
   theta ~ normal(0, sigma);
-  sigma ~ exponential(.1);
+  sigma ~ gamma(2, 1);
   for (n in 1 : N) {
     target += rsm(y[n], theta[jj[n]], beta[ii[n]], kappa);
   }

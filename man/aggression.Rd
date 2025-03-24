@@ -2,7 +2,7 @@
 \docType{data}
 \alias{aggression}
 \title{Verbal aggression data}
-\description{Item response data regarding verbal agression from 316 persons and 24 items. Participants were instructed to imagine four frustrating scenarios in which either another or oneself is to blame. For each scenario, they responded "yes", "perhaps", or "no" regarding whether they would react by cursing, scolding, and shouting. They also responded whether they would want to engage in those three behaviors, resulting in a total six items per scenario. An example item is, "A bus fails to stop for me. I would want to curse."
+\description{Item response data regarding verbal aggression from 316 persons and 24 items. Participants were instructed to imagine four frustrating scenarios in which either another or oneself is to blame. For each scenario, they responded "yes", "perhaps", or "no" regarding whether they would react by cursing, scolding, and shouting. They also responded whether they would want to engage in those three behaviors, resulting in a total six items per scenario. An example item is, "A bus fails to stop for me. I would want to curse."
 }
 \usage{aggression}
 \format{A long-form data.frame (one row per item response) with the following columns:

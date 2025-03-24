@@ -1,75 +1,87 @@
-# Overview
+# edstan
 
-The **edstan** package for **R** provides convenience functions and pre-programmed **Stan** models related to item response theory (IRT). Its purpose is to make fitting common IRT models using Stan easy. 
-
-The following table lists the models packaged with **edstan**. Each of these may optionally included a latent regression of ability. The **Stan** code for these models is documented in a series of case studies, linked in the table.
-
-| Model | **Stan** file |
-|-----------------------------------------------------------------------------------------------|-------------------------|
-| [Rasch](http://mc-stan.org/documentation/case-studies/rasch_and_2pl.html)                     | *rasch_latent_reg.stan* |
-| [Partical credit](http://mc-stan.org/documentation/case-studies/pcm_and_gpcm.html)            | *pcm_latent_reg.stan*   |
-| [Rating scale](http://mc-stan.org/documentation/case-studies/rsm_and_grsm.html)               | *rsm_latent_reg.stan*   |
-| [Two-parameter logistic](http://mc-stan.org/documentation/case-studies/rasch_and_2pl.html)    | *2pl_latent_reg.stan*   |
-| [Generalized partial credit](http://mc-stan.org/documentation/case-studies/pcm_and_gpcm.html) | *gpcm_latent_reg.stan*  |
-| [Generalized rating scale](http://mc-stan.org/documentation/case-studies/rsm_and_grsm.htmll)  | *grsm_latent_reg.stan*  |
-
-The next table lists the functions packaged with **edstan**.
-
-| Function             | Purpose                                |
-|----------------------|----------------------------------------|
-| `irt_data()`         | Prepares data for fitting              |
-| `labelled_integer()` | Create vector of consecutive integers  |
-| `irt_stan()`         | Wrapper for Running MCMC               |
-| `print_irt_stan()`   | Show table of output                   |
-| `rhat_columns()`     | Create plot of convergence statistics  |
+The edstan package for **R** streamlines Bayesian estimation of item response
+models. It is designed around several predefined [Stan](https://mc-stan.org/)
+models and functions that support a quick start to a Bayesian workflow. 
 
 
-# Installation
+## Installation
 
-**edstan** relies on the **rstan** package, which should be installed first.
-[See here](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started) for instructions on installing **rstan**.
+edstan relies on the rstan package, which should be installed first.
+[See here](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started) for 
+instructions on installing rstan.
 
-**edstan** is available on CRAN and may be installed with
-`install.packages("edstan")`. 
-Alternatively, the development version may be installed directly from Github as follows.
+Once rstan is working on your machine, edstan may then be installed from CRAN:
 
-```{r}
-# Install edstan development version of edstan
-install.packages("devtools")
+```r
+install.packages("edstan")
+```
+
+Alternatively, edstan may be installed from Github:
+
+```r
 devtools::install_github("danielcfurr/edstan")
 ```
 
+## Brief manual
 
-# Example
+A [brief manual](briefmanual.md) provides details on the functions and 
+models. It also provides links to tutorials providing in depth information on
+each of the available models.
 
-The R code below is an example how prepare data, fit the Rasch model, and then view results. It uses an example dataset packaged with **edstan**.
 
-```{r}
-# Load packages
-library(rstan)
+## Quick start guide
+
+### Wide-format data
+
+The `spelling` dataset has one row per person. The first column `male` is a 
+dummy variable for whether the respondent is male. The remaining four columns
+are dummy variables for whether the respondent spelled a word correctly.
+
+```r
 library(edstan)
 
-# Make the data list
-data_dich <- irt_data(y = aggression$dich, 
-                      ii = labelled_integer(aggression$description), 
-                      jj = aggression$person)
+# Use parallel processing
+options(mc.cores = parallel::detectCores())
 
-# Fit the Rasch model
-fit_rasch <- irt_stan(data_dich, model = "rasch_latent_reg.stan",
-                      iter = 200, chains = 4)
+# Prepare data
+spelling_dat <- irt_data(response_matrix = spelling[, -1])
 
-# View convergence statistics
-rhat_columns(fit_rasch)
+# Fit a model to the prepared data
+spelling_fit <- irt_stan(spelling_dat)
 
-# View summary of parameter posteriors					  
-print_irt_stan(fit_rasch, data_dich)
+# View sampling diagnostics
+stan_columns_plot(spelling_fit)
 
-# Add a latent regression to the previous model
-data_lr <- irt_data(y = aggression$dich, 
-                    ii = labelled_integer(aggression$description), 
-                    jj = aggression$person,
-                    covariates = aggression[, c("male", "anger")],
-                    formula = ~ 1 + male*aggression)
-fit_lr <- irt_stan(data_lr, model = "rasch_latent_reg.stan",
-                   iter = 200, chains = 4)
+# Display a summary of parameter posteriors
+print_irt_stan(spelling_fit, spelling_data)
 ```
+
+### Long-format data
+
+The `aggression` dataset has one row per item response. The column `person` has
+ID values indicating the person providing the response, `item` has
+ID values for the item responded to, and `poly` has values 0, 1, or 2 for the
+item response.
+
+```r
+library(edstan)
+
+# Use parallel processing
+options(mc.cores = parallel::detectCores())
+
+# Prepare data
+aggression_dat <- irt_data(ii = aggression$person,
+                           jj = aggression$item,
+                           y = aggression$poly)
+
+# Fit a model to the prepared data
+aggression_fit <- irt_stan(aggression_dat)
+
+# View sampling diagnostics
+stan_columns_plot(aggression_fit)
+
+# Display a summary of parameter posteriors
+print_irt_stan(aggression_fit, aggression_data)
+```
+
