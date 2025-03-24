@@ -1,7 +1,7 @@
 # edstan
 
 The edstan package for **R** streamlines Bayesian estimation of item response
-models. It is designed around several pre-defined [Stan](https://mc-stan.org/)
+models. It is designed around several predefined [Stan](https://mc-stan.org/)
 models and functions that support a quick start to a Bayesian workflow. 
 
 

@@ -2,6 +2,12 @@
 
 ## Release process
 
+Check spelling.
+
+```{r}
+devtools::spell_check()
+```
+
 Update documentation and run tests.
 
 ```{r}
@@ -10,7 +16,15 @@ devtools::check(vignettes = FALSE)
 testthat::test_local()
 ```
 
-Build github_document version of the vignette.
+Check for Windows compatibility.
+
+```{r}
+devtools::check_win_devel()
+```
+
+Build github_document version of the vignette. This is for viewing the vignette
+at Github and so does not affect the package build. The resulting updates should
+be pushed to the `develop` branch.
 
 ```{r}
 # Render to GitHub-flavored Markdown
@@ -27,18 +41,10 @@ file.copy(
 unlink("vignettes/briefmanual_files/", recursive = TRUE)
 ```
 
-Any changes from the above should be pushed to the develop Git branch.
-
-Build the `.tar.gz` file.
-
-```{r}
-devtools::build()
-```
-
 Release the package to CRAN.
 
 ```{r}
-use_cran_comments()
+usethis::use_cran_comments()
 devtools::release()
 ```
 
@@ -47,8 +53,8 @@ Once accepted, merge the develop branch into main.
 
 ## Other
 
-Install the local package without the vignette, which is slow.
+Install the local package.
 
 ```{r}
-devtools::install(build_vignettes = FALSE)
+devtools::install()
 ```

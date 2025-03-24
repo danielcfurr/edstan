@@ -27,3 +27,7 @@ once that a user is comfortable utilizing the preceding workflow with the
 pre-defined \pkg{edstan} models, they will go on to write their own Stan
 models.
 }
+\author{
+\strong{Maintainer}: Daniel C. Furr \email{danielcfurr@gmail.com}
+
+}
