@@ -4,10 +4,10 @@ Daniel C. Furr
 
 # Overview
 
-The edstan package for R provides convenience functions and
-pre-programmed Stan models related to item response theory (IRT). Its
-purpose is to make fitting common IRT models using Stan easy. edstan
-relies on the rstan package, which should be installed first. [See
+The edstan package for R provides convenience functions and predefined
+Stan models related to item response theory (IRT). Its purpose is to
+make fitting common IRT models using Stan easy. edstan relies on the
+rstan package, which should be installed first. [See
 here](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started) for
 instructions on installing rstan.
 
@@ -19,12 +19,12 @@ this they were written.
 
 | Model | Stan file |
 |----|----|
-| [Rasch](http://mc-stan.org/documentation/case-studies/rasch_and_2pl.html) | *rasch_latent_reg.stan* |
-| [Partial credit](http://mc-stan.org/documentation/case-studies/pcm_and_gpcm.html) | *pcm_latent_reg.stan* |
-| [Rating scale](http://mc-stan.org/documentation/case-studies/rsm_and_grsm.html) | *rsm_latent_reg.stan* |
-| [Two-parameter logistic](http://mc-stan.org/documentation/case-studies/rasch_and_2pl.html) | *2pl_latent_reg.stan* |
-| [Generalized partial credit](http://mc-stan.org/documentation/case-studies/pcm_and_gpcm.html) | *gpcm_latent_reg.stan* |
-| [Generalized rating scale](http://mc-stan.org/documentation/case-studies/rsm_and_grsm.html) | *grsm_latent_reg.stan* |
+| [Rasch](https://mc-stan.org/learn-stan/case-studies/rasch_and_2pl.html) | *rasch_latent_reg.stan* |
+| [Partial credit](https://mc-stan.org/learn-stan/case-studies/pcm_and_gpcm.html) | *pcm_latent_reg.stan* |
+| [Rating scale](https://mc-stan.org/learn-stan/case-studies/rsm_and_grsm.html) | *rsm_latent_reg.stan* |
+| [Two-parameter logistic](https://mc-stan.org/learn-stan/case-studies/rasch_and_2pl.html) | *2pl_latent_reg.stan* |
+| [Generalized partial credit](https://mc-stan.org/learn-stan/case-studies/pcm_and_gpcm.html) | *gpcm_latent_reg.stan* |
+| [Generalized rating scale](https://mc-stan.org/learn-stan/case-studies/rsm_and_grsm.html) | *grsm_latent_reg.stan* |
 
 The next table lists the functions packaged with edstan.
 
@@ -112,7 +112,7 @@ data list.
 
 In the next block a data list is made that includes `male` as a
 covariate. We use the `rescale_binary()` function to rescale this
-covariate for compatability with the prior distributions specified in
+covariate for compatibility with the prior distributions specified in
 edstan models.
 
 ``` r
@@ -203,7 +203,7 @@ print_irt_stan(fit_rasch, latent_reg_list)
     ##   lambda[2]  0.24       0 0.14 -0.02  0.15  0.24  0.33  0.52  2614 1.00
     ##   sigma      1.25       0 0.09  1.07  1.18  1.25  1.31  1.44   463 1.02
     ##   
-    ## Samples were drawn using NUTS(diag_e) at Fri Mar 21 17:17:16 2025.
+    ## Samples were drawn using NUTS(diag_e) at Mon Mar 24 12:12:58 2025.
     ## For each parameter, n_eff is a crude measure of effective sample size,
     ## and Rhat is the potential scale reduction factor on split chains (at 
     ## convergence, Rhat=1).
@@ -280,7 +280,7 @@ the responses in vector form, `ii` takes a vector of item IDs, and `jj`
 takes a vector of person IDs. The use of *covariates* and *formula* are
 the same as before. For the latent regression part, we use the
 `rescale_binary()` and `rescale_continuous()` functions to rescale the
-covariates for compatability with the prior distributions specified in
+covariates for compatibility with the prior distributions specified in
 edstan models.
 
 ``` r
@@ -330,8 +330,8 @@ stan_columns_plot(fit_gpcm)
 ![](briefmanual_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 And lastly we obtain a table of posterior summaries. Here, *alpha*
-refers to discriminations, *beta* refers to step difficulties, and
-*lambda* refers to latent regression coefficients.
+refers to discrimination parameters, *beta* refers to step difficulty
+parameters, and *lambda* refers to latent regression coefficients.
 
 ``` r
 # View a summary of parameter posteriors    
@@ -445,7 +445,7 @@ print_irt_stan(fit_gpcm, agg_list)
     ##   lambda[3]  0.60    0.00 0.12  0.36  0.52  0.60  0.68  0.85  4134 1.00
     ##   lambda[4] -0.28    0.00 0.27 -0.80 -0.46 -0.27 -0.09  0.25  4946 1.00
     ##   
-    ## Samples were drawn using NUTS(diag_e) at Fri Mar 21 17:20:56 2025.
+    ## Samples were drawn using NUTS(diag_e) at Mon Mar 24 12:17:12 2025.
     ## For each parameter, n_eff is a crude measure of effective sample size,
     ## and Rhat is the potential scale reduction factor on split chains (at 
     ## convergence, Rhat=1).

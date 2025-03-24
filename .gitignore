@@ -3,6 +3,7 @@
 
 *.RData
 *.Rproj
+*.html
 .DS_Store
 /doc/
 /Meta/
